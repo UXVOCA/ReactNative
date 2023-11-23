@@ -1,45 +1,67 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import words from "../vocab/todayvocab"; // words 배열 임포트
 
 const TodayTestPage = () => {
-  const [currentNumber, setCurrentNumber] = useState(3); // 현재 번호를 상태로 관리합니다.
+  const navigation = useNavigation();
+  const [currentNumber, setCurrentNumber] = useState(0);
+  const [userAnswers, setUserAnswers] = useState([]); // 사용자 답변 상태
 
-  // 숫자를 증가시키는 함수입니다.
-  const increment = () => {
-    setCurrentNumber((prevNumber) =>
-      prevNumber < 10 ? prevNumber + 1 : prevNumber
-    );
+  const handleAnswer = (option) => {
+    const newUserAnswers = [
+      ...userAnswers,
+      { word: words[currentNumber].word, selected: option },
+    ];
+    setUserAnswers(newUserAnswers);
+
+    if (currentNumber < words.length - 1) {
+      setCurrentNumber(currentNumber + 1);
+    } else {
+      navigation.navigate("TodayTestAnswer", { userAnswers: newUserAnswers });
+    }
+  };
+  const goToPrevious = () => {
+    if (currentNumber > 0) {
+      setCurrentNumber(currentNumber - 1);
+    }
   };
 
-  // 숫자를 감소시키는 함수입니다.
-  const decrement = () => {
-    setCurrentNumber((prevNumber) =>
-      prevNumber > 1 ? prevNumber - 1 : prevNumber
-    );
+  const goToNext = () => {
+    if (currentNumber < words.length - 1) {
+      setCurrentNumber(currentNumber + 1);
+    }
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.wordText}>approach</Text>
+        <Text style={styles.wordText}>{words[currentNumber].word}</Text>
       </View>
       <View style={styles.navigation}>
-        <TouchableOpacity style={styles.navButton} onPress={decrement}>
-          <Text style={styles.navButtonText}>〈</Text>
+        <TouchableOpacity>
+          <Text style={styles.navButtonText} onPress={goToPrevious}>
+            {"<"}
+          </Text>
         </TouchableOpacity>
-        <Text style={styles.navText}>{currentNumber}/10</Text>
-        <TouchableOpacity style={styles.navButton} onPress={increment}>
-          <Text style={styles.navButtonText}>〉</Text>
+        <Text style={styles.navText}>
+          {currentNumber + 1}/{words.length}
+        </Text>
+        <TouchableOpacity>
+          <Text style={styles.navButtonText} onPress={goToNext}>
+            {">"}
+          </Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button} onPress={increment}>
-        <Text style={styles.buttonText}>다가가다</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={increment}>
-        <Text style={styles.buttonText}>멀어지다</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={increment}>
-        <Text style={styles.buttonText}>왔다갔다</Text>
-      </TouchableOpacity>
+      {words[currentNumber].options.map((option, index) => (
+        <TouchableOpacity
+          key={index}
+          style={styles.button}
+          onPress={() => handleAnswer(option)}
+        >
+          <Text style={styles.buttonText}>{option}</Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 };
@@ -71,7 +93,9 @@ const styles = StyleSheet.create({
   navigation: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 10,
+    justifyContent: "space-between",
+    width: "40%",
+    marginVertical: 20,
   },
   navButton: {
     padding: 20,
@@ -99,6 +123,10 @@ const styles = StyleSheet.create({
     textAlign: "center", // 텍스트 정렬
     fontSize: 30, // 텍스트 크기
     fontWeight: "bold", // 텍스트 굵기
+  },
+  navButtonText: {
+    fontSize: 30,
+    color: "black",
   },
 });
 
