@@ -5,6 +5,7 @@ import TestPage from "./pages/testpage.js";
 import TodayTestPage from "./pages/todaytestpage.js";
 import ReviewTestPage from "./pages/reviewtestpage.js";
 import WrongTestPage from "./pages/wrongtestpage.js";
+import TodayTestAnswerPage from "./pages/todaytestanswerpage.js";
 
 const Stack = createNativeStackNavigator();
 
@@ -14,6 +15,7 @@ function App() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="TestPage" component={TestPage} />
         <Stack.Screen name="TodayTestPage" component={TodayTestPage} />
+        <Stack.Screen name="TodayTestAnswer" component={TodayTestAnswerPage} />
         <Stack.Screen name="ReviewTestPage" component={ReviewTestPage} />
         <Stack.Screen name="WrongTestPage" component={WrongTestPage} />
       </Stack.Navigator>
