@@ -1,24 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import words from "../vocab/todayvocab"; // words 배열 임포트
-
+import words from "../vocab/todayvocab";
+import _ from "lodash"; // lodash 라이브러리 임포트
 const TodayTestPage = () => {
   const navigation = useNavigation();
   const [currentNumber, setCurrentNumber] = useState(0);
   const [userAnswers, setUserAnswers] = useState([]); // 사용자 답변 상태
+  const [selectedWords, setSelectedWords] = useState([]); // 무작위로 선택한 단어 배열
+
+  useEffect(() => {
+    // 무작위로 10개의 단어 선택
+    const shuffledWords = _.shuffle(words);
+    const selected = shuffledWords.slice(0, 10);
+    setSelectedWords(selected);
+  }, []);
 
   const handleAnswer = (option) => {
     const newUserAnswers = [
       ...userAnswers,
-      { word: words[currentNumber].word, selected: option },
+      { word: selectedWords[currentNumber].word, selected: option },
     ];
     setUserAnswers(newUserAnswers);
 
-    if (currentNumber < words.length - 1) {
+    if (currentNumber < selectedWords.length - 1) {
       setCurrentNumber(currentNumber + 1);
     } else {
-      navigation.navigate("TodayTestAnswer", { userAnswers: newUserAnswers });
+      navigation.navigate("TodayTestAnswer", {
+        userAnswers: newUserAnswers,
+        selectedWords: selectedWords,
+      });
     }
   };
   const goToPrevious = () => {
@@ -28,7 +39,7 @@ const TodayTestPage = () => {
   };
 
   const goToNext = () => {
-    if (currentNumber < words.length - 1) {
+    if (currentNumber < selectedWords.length - 1) {
       setCurrentNumber(currentNumber + 1);
     }
   };
@@ -36,7 +47,12 @@ const TodayTestPage = () => {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.wordText}>{words[currentNumber].word}</Text>
+        {/* currentNumber가 범위 내에 있는지 확인 */}
+        {selectedWords[currentNumber] && (
+          <Text style={styles.wordText}>
+            {selectedWords[currentNumber].word}
+          </Text>
+        )}
       </View>
       <View style={styles.navigation}>
         <TouchableOpacity>
@@ -45,7 +61,7 @@ const TodayTestPage = () => {
           </Text>
         </TouchableOpacity>
         <Text style={styles.navText}>
-          {currentNumber + 1}/{words.length}
+          {currentNumber + 1}/{selectedWords.length}
         </Text>
         <TouchableOpacity>
           <Text style={styles.navButtonText} onPress={goToNext}>
@@ -53,15 +69,17 @@ const TodayTestPage = () => {
           </Text>
         </TouchableOpacity>
       </View>
-      {words[currentNumber].options.map((option, index) => (
-        <TouchableOpacity
-          key={index}
-          style={styles.button}
-          onPress={() => handleAnswer(option)}
-        >
-          <Text style={styles.buttonText}>{option}</Text>
-        </TouchableOpacity>
-      ))}
+      {/* currentNumber가 범위 내에 있는지 확인 */}
+      {selectedWords[currentNumber] &&
+        selectedWords[currentNumber].options.map((option, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.button}
+            onPress={() => handleAnswer(option)}
+          >
+            <Text style={styles.buttonText}>{option}</Text>
+          </TouchableOpacity>
+        ))}
     </View>
   );
 };

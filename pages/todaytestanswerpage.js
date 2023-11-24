@@ -4,10 +4,10 @@ import words from "../vocab/todayvocab";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 const TodayTestAnswerPage = ({ route }) => {
-  const { userAnswers } = route.params;
+  const { userAnswers, selectedWords } = route.params;
   const [currentNumber, setCurrentNumber] = useState(0);
 
-  const correctAnswer = words.find(
+  const correctAnswer = selectedWords.find(
     (w) => w.word === userAnswers[currentNumber].word
   ).answer;
   const isCorrect = userAnswers[currentNumber].selected === correctAnswer;
