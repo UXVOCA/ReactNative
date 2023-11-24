@@ -2,25 +2,31 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import words from "../vocab/todayvocab";
+import wrongVocab from "../vocab/wrongvocab";
 import _ from "lodash"; // lodash 라이브러리 임포트
+
 const TodayTestPage = () => {
   const navigation = useNavigation();
   const [currentNumber, setCurrentNumber] = useState(0);
-  const [userAnswers, setUserAnswers] = useState([]); // 사용자 답변 상태
-  const [selectedWords, setSelectedWords] = useState([]); // 무작위로 선택한 단어 배열
+  const [userAnswers, setUserAnswers] = useState([]);
+  const [selectedWords, setSelectedWords] = useState([]);
+  const [wrongVocab, setWrongVocab] = useState([]); // 오답 단어 배열
 
   useEffect(() => {
-    // 무작위로 10개의 단어 선택
     const shuffledWords = _.shuffle(words);
     const selected = shuffledWords.slice(0, 10);
     setSelectedWords(selected);
   }, []);
 
   const handleAnswer = (option) => {
+    const selectedWord = selectedWords[currentNumber];
+    const correctAnswer = selectedWord.answer;
+
     const newUserAnswers = [
       ...userAnswers,
-      { word: selectedWords[currentNumber].word, selected: option },
+      { word: selectedWord.word, selected: option },
     ];
+
     setUserAnswers(newUserAnswers);
 
     if (currentNumber < selectedWords.length - 1) {
@@ -30,6 +36,11 @@ const TodayTestPage = () => {
         userAnswers: newUserAnswers,
         selectedWords: selectedWords,
       });
+    }
+
+    // 사용자가 틀린 경우 오답 단어를 추가
+    if (option !== correctAnswer) {
+      setWrongVocab([...wrongVocab, selectedWord]);
     }
   };
   const goToPrevious = () => {
