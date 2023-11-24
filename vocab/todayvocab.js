@@ -6,7 +6,7 @@ const words = [
   },
   {
     word: "benevolent",
-    options: ["자비로운", "악의적인", "무관심한"],
+    options: ["악의적인", "자비로운", "무관심한"],
     answer: "자비로운",
   },
   {
@@ -16,12 +16,12 @@ const words = [
   },
   {
     word: "diverse",
-    options: ["다양한", "유사한", "일관된"],
+    options: ["일관된", "유사한", "다양한"],
     answer: "다양한",
   },
   {
     word: "endeavor",
-    options: ["노력하다", "포기하다", "거부하다"],
+    options: ["거부하다", "포기하다", "노력하다"],
     answer: "노력하다",
   },
   {
@@ -31,7 +31,7 @@ const words = [
   },
   {
     word: "gregarious",
-    options: ["사교적인", "외톨이", "내성적인"],
+    options: ["외톨이", "사교적인", "내성적인"],
     answer: "사교적인",
   },
   {
@@ -46,7 +46,7 @@ const words = [
   },
   {
     word: "juxtapose",
-    options: ["병렬시키다", "분리하다", "혼합하다"],
+    options: ["분리시키다", "병렬시키다", "혼합하다"],
     answer: "병렬시키다",
   },
 ];

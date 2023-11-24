@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import words from "../vocab/todayvocab";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const TodayTestAnswerPage = ({ route }) => {
   const { userAnswers } = route.params;
@@ -26,7 +27,7 @@ const TodayTestAnswerPage = ({ route }) => {
   return (
     <View style={styles.container}>
       <View
-        style={[styles.card, { backgroundColor: isCorrect ? "blue" : "red" }]}
+        style={[styles.card, { backgroundColor: isCorrect ? "green" : "red" }]}
       >
         <Text style={styles.wordText}>{userAnswers[currentNumber].word}</Text>
       </View>
@@ -44,30 +45,61 @@ const TodayTestAnswerPage = ({ route }) => {
       <View style={styles.optionsContainer}>
         {words
           .find((w) => w.word === userAnswers[currentNumber].word)
-          .options.map((option, idx) => (
-            <View
-              key={idx}
-              style={[
-                styles.button,
-                {
-                  backgroundColor:
-                    userAnswers[currentNumber].selected === option
-                      ? isCorrect
-                        ? "blue"
-                        : "red"
-                      : "#AABCFD",
-                },
-              ]}
-            >
-              <Text style={styles.buttonText}>{option}</Text>
-            </View>
-          ))}
+          .options.map((option, idx) => {
+            const isSelected = userAnswers[currentNumber].selected === option;
+            const isCorrectOption = option === correctAnswer;
+            const isCorrectSelected = isSelected && isCorrect;
+
+            let borderColor = "#A4A4A4"; // 기본 테두리 색상
+            let borderWidth = 1; // 기본 테두리 두께
+            let textColor = "black"; // 기본 텍스트 색상
+
+            if (isCorrectSelected) {
+              borderColor = "green"; // 정답 선택 시 테두리 색상
+              borderWidth = 3; // 정답 선택 시 테두리 두께
+              textColor = "green"; // 정답 선택 시 텍스트 색상
+            } else if (isSelected) {
+            } else if (isCorrectOption) {
+              textColor = "red"; // 정답 표시 시 텍스트 색상
+              borderColor = "red"; // 오답 선택 시 테두리 색상
+              borderWidth = 3; // 오답 선택 시 테두리 두께
+            }
+
+            if (isSelected) {
+              iconName = isCorrectSelected ? "check-circle" : "times-circle";
+              iconColor = isCorrectSelected ? "green" : "red";
+            }
+
+            return (
+              <View
+                key={idx}
+                style={[styles.button, { borderColor, borderWidth }]}
+              >
+                <Text style={[styles.buttonText, { color: textColor }]}>
+                  {option}
+                </Text>
+                {isSelected && (
+                  <Icon
+                    name={iconName}
+                    size={40}
+                    color={iconColor}
+                    style={styles.checkIcon}
+                  />
+                )}
+              </View>
+            );
+          })}
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  checkIcon: {
+    position: "absolute",
+    right: 15,
+    top: 25,
+  },
   container: {
     flex: 1,
     alignItems: "center",
