@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginBottom: 5,
-    color: "#7794FF  ",
+    color: "#7794FF",
   },
 });
 

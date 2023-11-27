@@ -50,6 +50,7 @@ function HomePage() {
           fill={fillPercentage}
           tintColor="#7794FF"
           backgroundColor="#BEBEBE"
+          rotation={0}
         >
           {(fill) => <Text>{`${Math.round(fill)} %`}</Text>}
         </AnimatedCircularProgress>
