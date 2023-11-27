@@ -1,0 +1,108 @@
+const wordList = [
+    {
+      word: "approach",
+      answer: ["다가가다[오다]", "(특히 부탁·제안 등을 하기 위해) 접촉하다, (다가가서) 말을 하다", "접근법, 처리 방법"],
+      learncount: 1, 
+      reviewcount: 1,
+      learndate: "2023-11-25",
+      nextreview: "2023-11-26",
+      wrongcount: 1,
+    },
+    // 기존 단어들...
+    {
+      word: "construct",
+      answer: ["건설하다", "구축하다"],
+      learncount: 1,
+      reviewcount: 0,
+      learndate: "2023-11-25",
+      nextreview: "2023-12-01",
+      wrongcount: 3,
+    },
+    {
+      word: "demonstrate",
+      answer: ["증명하다", "시위하다"],
+      learncount: 0,
+      reviewcount: 0,
+      learndate: "2023-11-25",
+      nextreview: "2023-12-02",
+      wrongcount: 5,
+    },
+    {
+      word: "evaluate",
+      answer: ["평가하다", "가치를 매기다"],
+      learncount: 1,
+      reviewcount: 0,
+      learndate: "2023-11-25",
+      nextreview: "2023-12-03",
+      wrongcount: 7,
+    },
+    {
+      word: "feature",
+      answer: ["특징", "특색", "주요 부분이 되다"],
+      learncount: 1,
+      reviewcount: 0,
+      learndate: "2023-11-25",
+      nextreview: "2023-12-04",
+      wrongcount: 7,
+    },
+    {
+      word: "generate",
+      answer: ["발생시키다", "생성하다"],
+      learncount: 0,
+      reviewcount: 0,
+      learndate: "2023-11-25",
+      nextreview: "2023-12-05",
+      wrongcount: 2,
+    },
+    {
+      word: "hypothesis",
+      answer: ["가설", "추측"],
+      learncount: 1,
+      reviewcount: 0,
+      learndate: "2023-11-25",
+      nextreview: "2023-12-06",
+      wrongcount: 3,
+    },
+    {
+      word: "implement",
+      answer: ["구현하다", "실행하다"],
+      learncount: 1,
+      reviewcount: 0,
+      learndate: "2023-11-25",
+      nextreview: "2023-12-07",
+      wrongcount: 2,
+    },
+    {
+      word: "justify",
+      answer: ["정당화하다", "옹호하다"],
+      learncount: 0,
+      reviewcount: 0,
+      learndate: "2023-11-25",
+      nextreview: "2023-12-08",
+      wrongcount: 0,
+    },
+    {
+      word: "knowledge",
+      answer: ["지식", "앎"],
+      learncount: 1,
+      reviewcount: 0,
+      learndate: "2023-11-25",
+      nextreview: "2023-12-09",
+      wrongcount: 0,
+    },
+    {
+      word: "locate",
+      answer: ["위치시키다", "찾아내다"],
+      learncount: 1,
+      reviewcount: 0,
+      learndate: "2023-11-25",
+      nextreview: "2023-12-10",
+      wrongcount: 0,
+    },
+    // 추가 단어들...
+  ];
+  
+  
+  
+  export default wordList;
+  
