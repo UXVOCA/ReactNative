@@ -48,9 +48,9 @@ const WrongListPage = () => {
     <View style={styles.container}>
 
       {/* 헤더 */}
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <Text style={styles.headerTitle}>틀린 단어</Text>
-      </View>
+      </View> */}
 
       {/* 모두 해제 버튼 */}
       <View style={styles.checkResetBtnContainer}>

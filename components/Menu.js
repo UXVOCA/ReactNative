@@ -33,7 +33,7 @@ function Menu({ navigation, setMenuVisible }) {
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.menuItem}
-        onPress={() => navigateToScreen("WrongTestPage")}
+        onPress={() => navigateToScreen("WrongPage")}
       >
         <Ionicons
           style={styles.icon}

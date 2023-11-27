@@ -12,6 +12,7 @@ import TodayListPage from "./pages/todaylistpage.js";
 import TodayNewListPage from "./pages/todaynewlistpage.js";
 import TodayReviewListPage from "./pages/todayreviewlistpage.js";
 import WrongListPage from "./pages/wronglistpage.js";
+import WrongPage from "./pages/wrongpage.js";
 
 const Stack = createNativeStackNavigator();
 
@@ -67,6 +68,16 @@ function App() {
         />
 
         <Stack.Screen
+          name="WrongPage"
+          component={WrongPage}
+          options={({ navigation }) => ({
+            header: () => (
+              <CustomHeader navigation={navigation} title="틀린 단어" />
+            ),
+          })}
+        />
+
+        <Stack.Screen
           name="WrongTestPage"
           component={WrongTestPage}
           options={({ navigation }) => ({
@@ -80,7 +91,7 @@ function App() {
           name="TodayListPage"
           component={TodayListPage}
           options={({ navigation }) => ({
-            header: () => <CustomHeader navigation={navigation} title="Home" />,
+            header: () => <CustomHeader navigation={navigation} title="오늘의 단어 리스트" />,
           })}
         />
 
@@ -88,7 +99,7 @@ function App() {
           name="TodayNewListPage"
           component={TodayNewListPage}
           options={({ navigation }) => ({
-            header: () => <CustomHeader navigation={navigation} title="Home" />,
+            header: () => <CustomHeader navigation={navigation} title="오늘의 새로운 단어" />,
           })}
         />
 
@@ -96,7 +107,7 @@ function App() {
           name="TodayReviewListPage"
           component={TodayReviewListPage}
           options={({ navigation }) => ({
-            header: () => <CustomHeader navigation={navigation} title="Home" />,
+            header: () => <CustomHeader navigation={navigation} title="오늘의 복습 단어" />,
           })}
         />
 
