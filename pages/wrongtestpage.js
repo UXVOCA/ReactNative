@@ -1,34 +1,116 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { useNavigation } from "@react-navigation/native";
+import _ from "lodash";
 
 const WrongTestPage = () => {
+  const navigation = useNavigation();
+  const [currentNumber, setCurrentNumber] = useState(0);
+  const [wrongVocab, setWrongVocab] = useState([]);
+
+  useEffect(() => {
+    // 오답 목록 불러오기
+    const loadWrongVocab = async () => {
+      try {
+        const storedWrongVocab = await AsyncStorage.getItem("wrongVocab");
+        if (storedWrongVocab !== null) {
+          setWrongVocab(JSON.parse(storedWrongVocab));
+        }
+      } catch (error) {
+        console.error("오답 목록을 불러오는 데 실패했습니다.", error);
+      }
+    };
+
+    loadWrongVocab();
+  }, []);
+  const handleAnswer = async (selectedWord, option) => {
+    const correctAnswer = selectedWord.answer[0];
+
+    if (option === correctAnswer) {
+      // 정답인 경우
+      const newWrongVocab = wrongVocab.map((word) =>
+        word.word === selectedWord.word
+          ? {
+              ...word,
+              wrongcount: word.wrongcount > 0 ? word.wrongcount - 1 : 0,
+            } // wrongcount 감소
+          : word
+      );
+      setWrongVocab(newWrongVocab);
+      await AsyncStorage.setItem("wrongVocab", JSON.stringify(newWrongVocab));
+    } else {
+      // 틀린 경우
+      const newWrongVocab = wrongVocab.map((word) =>
+        word.word === selectedWord.word
+          ? { ...word, wrongcount: word.wrongcount + 1 }
+          : word
+      );
+      setWrongVocab(newWrongVocab);
+      await AsyncStorage.setItem("wrongVocab", JSON.stringify(newWrongVocab));
+    }
+
+    // 다음 문제로 이동
+    if (currentNumber < wrongVocab.length - 1) {
+      setCurrentNumber(currentNumber + 1);
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  // 이전 및 다음 버튼 핸들러 (todaytestpage.js에서 가져옴)
+
+  const goToPrevious = () => {
+    if (currentNumber > 0) {
+      setCurrentNumber(currentNumber - 1);
+    }
+  };
+
+  const goToNext = () => {
+    if (currentNumber < wrongVocab.length - 1) {
+      setCurrentNumber(currentNumber + 1);
+    }
+  };
+
+  // UI 구성 (todaytestpage.js에서 가져옴, 필요에 따라 수정)
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.wordText}>aaa</Text>
+        {/* currentNumber가 범위 내에 있는지 확인 */}
+        {wrongVocab[currentNumber] && (
+          <Text style={styles.wordText}>{wrongVocab[currentNumber].word}</Text>
+        )}
       </View>
       <View style={styles.navigation}>
-        <TouchableOpacity style={styles.navButton}>
-          <Text>〈</Text>
+        <TouchableOpacity>
+          <Text style={styles.navButtonText} onPress={goToPrevious}>
+            {"<"}
+          </Text>
         </TouchableOpacity>
-        <Text style={styles.navText}>3/10</Text>
-        <TouchableOpacity style={styles.navButton}>
-          <Text>〉</Text>
+        <Text style={styles.navText}>
+          {currentNumber + 1}/{wrongVocab.length}
+        </Text>
+        <TouchableOpacity>
+          <Text style={styles.navButtonText} onPress={goToNext}>
+            {">"}
+          </Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>다가가다</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>멀어지다</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>왔다갔다</Text>
-      </TouchableOpacity>
+      {/* currentNumber가 범위 내에 있는지 확인 */}
+      {wrongVocab[currentNumber] &&
+        wrongVocab[currentNumber].options.map((option, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.button}
+            onPress={() => handleAnswer(wrongVocab[currentNumber], option)}
+          >
+            <Text style={styles.buttonText}>{option}</Text>
+          </TouchableOpacity>
+        ))}
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -42,7 +124,6 @@ const styles = StyleSheet.create({
     height: "20%",
     marginVertical: 2,
     padding: 20,
-    marginTop: 150,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 3,
@@ -56,7 +137,9 @@ const styles = StyleSheet.create({
   navigation: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 10,
+    justifyContent: "space-between",
+    width: "40%",
+    marginVertical: 20,
   },
   navButton: {
     padding: 20,
@@ -85,6 +168,11 @@ const styles = StyleSheet.create({
     fontSize: 30, // 텍스트 크기
     fontWeight: "bold", // 텍스트 굵기
   },
+  navButtonText: {
+    fontSize: 30,
+    color: "black",
+  },
 });
+// styles (todaytestpage.js에서 가져옴, 필요에 따라 수정)
 
 export default WrongTestPage;
