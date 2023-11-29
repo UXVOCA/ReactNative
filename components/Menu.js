@@ -61,11 +61,11 @@ function Menu({ navigation, setMenuVisible }) {
 
 const styles = StyleSheet.create({
   menuContainer: {
-    // Style your menu container
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 30,
+    borderTopColor: "black",
   },
   menuItem: {
     alignItems: "center",
