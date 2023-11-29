@@ -14,7 +14,7 @@ function Menu({ navigation, setMenuVisible }) {
     <View style={styles.menuContainer}>
       <TouchableOpacity
         style={styles.menuItem}
-        onPress={() => navigateToScreen("TodayTestPage")}
+        onPress={() => navigateToScreen("TodayListPage")}
       >
         <AntDesign style={styles.icon} name="book" size={24} color="black" />
         <Text style={styles.menuText}>오늘의 단어</Text>

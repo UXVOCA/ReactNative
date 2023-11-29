@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import words from "../vocab/todayvocab";
+import words from "../vocab/vocab";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 const TodayTestAnswerPage = ({ route }) => {
   const { userAnswers, selectedWords } = route.params;
   const [currentNumber, setCurrentNumber] = useState(0);
 
-  const correctAnswer = selectedWords.find(
-    (w) => w.word === userAnswers[currentNumber].word
-  ).answer;
-  const isCorrect = userAnswers[currentNumber].selected === correctAnswer;
+  const currentWordData = selectedWords[currentNumber];
+  const currentAnswerData = userAnswers[currentNumber];
+
+  const correctAnswer = currentWordData.answer[0]; // 정답은 answer 배열의 첫 번째 요소입니다.
+  const isCorrect = currentAnswerData.selected === correctAnswer;
 
   const goToPrevious = () => {
     if (currentNumber > 0) {
@@ -43,52 +44,55 @@ const TodayTestAnswerPage = ({ route }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.optionsContainer}>
-        {words
-          .find((w) => w.word === userAnswers[currentNumber].word)
-          .options.map((option, idx) => {
-            const isSelected = userAnswers[currentNumber].selected === option;
-            const isCorrectOption = option === correctAnswer;
-            const isCorrectSelected = isSelected && isCorrect;
+        {currentWordData.options.map((option, idx) => {
+          const isSelected = currentAnswerData.selected === option;
+          const isCorrectOption = option === correctAnswer;
+          const isCorrectSelected = isSelected && isCorrect;
 
-            let borderColor = "#A4A4A4"; // 기본 테두리 색상
-            let borderWidth = 1; // 기본 테두리 두께
-            let textColor = "black"; // 기본 텍스트 색상
+          let borderColor = "#A4A4A4"; // 기본 테두리 색상
+          let borderWidth = 1; // 기본 테두리 두께
+          let textColor = "black"; // 기본 텍스트 색상
+          let iconName = isSelected
+            ? isCorrect
+              ? "check-circle"
+              : "times-circle"
+            : null;
+          let iconColor = isCorrectSelected ? "green" : "red";
 
-            if (isCorrectSelected) {
-              borderColor = "green"; // 정답 선택 시 테두리 색상
-              borderWidth = 3; // 정답 선택 시 테두리 두께
-              textColor = "green"; // 정답 선택 시 텍스트 색상
-            } else if (isSelected) {
-            } else if (isCorrectOption) {
-              textColor = "red"; // 정답 표시 시 텍스트 색상
-              borderColor = "red"; // 오답 선택 시 테두리 색상
-              borderWidth = 3; // 오답 선택 시 테두리 두께
-            }
+          if (isCorrectSelected) {
+            borderColor = "green";
+            borderWidth = 3;
+            textColor = "green";
+          } else if (isSelected && !isCorrect) {
+            borderColor = "red";
+            borderWidth = 3;
+            textColor = "red";
+          } else if (!isSelected && isCorrectOption) {
+            borderColor = "green";
+            borderWidth = 3;
+            textColor = "green";
+          }
 
-            if (isSelected) {
-              iconName = isCorrectSelected ? "check-circle" : "times-circle";
-              iconColor = isCorrectSelected ? "green" : "red";
-            }
-
-            return (
-              <View
-                key={idx}
-                style={[styles.button, { borderColor, borderWidth }]}
-              >
-                <Text style={[styles.buttonText, { color: textColor }]}>
-                  {option}
-                </Text>
-                {isSelected && (
-                  <Icon
-                    name={iconName}
-                    size={40}
-                    color={iconColor}
-                    style={styles.checkIcon}
-                  />
-                )}
-              </View>
-            );
-          })}
+          return (
+            <TouchableOpacity
+              key={idx}
+              style={[styles.button, { borderColor, borderWidth }]}
+              disabled={true} // 옵션을 선택할 수 없도록 비활성화
+            >
+              <Text style={[styles.buttonText, { color: textColor }]}>
+                {option}
+              </Text>
+              {iconName && (
+                <Icon
+                  name={iconName}
+                  size={40}
+                  color={iconColor}
+                  style={styles.checkIcon}
+                />
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
@@ -112,7 +116,7 @@ const styles = StyleSheet.create({
     height: "20%",
     marginVertical: 2,
     padding: 20,
-    marginTop: 150,
+
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 3,

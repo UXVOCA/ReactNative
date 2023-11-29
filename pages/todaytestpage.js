@@ -1,26 +1,54 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useNavigation } from "@react-navigation/native";
-import words from "../vocab/todayvocab";
-import wrongVocab from "../vocab/wrongvocab";
-import _ from "lodash"; // lodash 라이브러리 임포트
+import wordList from "../vocab/vocab"; // vocab.js에서 단어 목록 가져오기
+import _ from "lodash";
 
 const TodayTestPage = () => {
   const navigation = useNavigation();
   const [currentNumber, setCurrentNumber] = useState(0);
   const [userAnswers, setUserAnswers] = useState([]);
   const [selectedWords, setSelectedWords] = useState([]);
-  const [wrongVocab, setWrongVocab] = useState([]); // 오답 단어 배열
-
+  const [wrongVocab, setWrongVocab] = useState([]);
   useEffect(() => {
-    const shuffledWords = _.shuffle(words);
-    const selected = shuffledWords.slice(0, 10);
+    // 오답 목록을 불러오는 함수
+    const loadWrongVocab = async () => {
+      try {
+        const storedWrongVocab = await AsyncStorage.getItem("wrongVocab");
+        if (storedWrongVocab !== null) {
+          const wrongVocab = JSON.parse(storedWrongVocab);
+          setWrongVocab(wrongVocab); // 오답 목록 상태 업데이트
+          console.log("이전에 틀린 단어 목록:", wrongVocab);
+        }
+      } catch (error) {
+        console.error("오답 목록을 불러오는 데 실패했습니다.", error);
+      }
+    };
+
+    loadWrongVocab();
+  }, []);
+  useEffect(() => {
+    const shuffledWords = _.shuffle(wordList); // 단어 목록 섞기
+    const selected = shuffledWords.slice(0, 10); // 10개 단어 선택
+    selected.forEach((word) => {
+      word.options = _.shuffle([
+        word.answer[0],
+        ..._.sampleSize(
+          _.without(
+            wordList.map((w) => w.answer[0]),
+            word.answer[0]
+          ),
+          2
+        ),
+      ]); // 답변 옵션 생성
+    });
     setSelectedWords(selected);
   }, []);
-
   const handleAnswer = (option) => {
     const selectedWord = selectedWords[currentNumber];
-    const correctAnswer = selectedWord.answer;
+    const correctAnswer = selectedWord.answer[0];
 
     const newUserAnswers = [
       ...userAnswers,
@@ -29,6 +57,38 @@ const TodayTestPage = () => {
 
     setUserAnswers(newUserAnswers);
 
+    if (option !== correctAnswer) {
+      // 틀린 답변을 선택한 경우
+      const existingIndex = wrongVocab.findIndex(
+        (word) => word.word === selectedWord.word
+      );
+      let newWrongVocab;
+
+      if (existingIndex >= 0) {
+        // 이미 오답 목록에 있는 경우, wrongcount만 업데이트
+        newWrongVocab = [...wrongVocab];
+        newWrongVocab[existingIndex].wrongcount += 1;
+      } else {
+        // 새로운 오답인 경우, 목록에 추가
+        newWrongVocab = [...wrongVocab, { ...selectedWord, wrongcount: 1 }];
+      }
+
+      setWrongVocab(newWrongVocab);
+
+      // AsyncStorage에 오답 목록 저장
+      AsyncStorage.setItem("wrongVocab", JSON.stringify(newWrongVocab))
+        .then(() => {
+          console.log("오답 목록이 AsyncStorage에 업데이트 되었습니다.");
+        })
+        .catch((error) => {
+          console.error("오답 목록을 저장하는 중 오류가 발생했습니다.", error);
+        });
+    } else {
+      // 정답을 선택한 경우
+      console.log("정답입니다!");
+    }
+
+    // 테스트의 다음 문제로 이동
     if (currentNumber < selectedWords.length - 1) {
       setCurrentNumber(currentNumber + 1);
     } else {
@@ -37,12 +97,8 @@ const TodayTestPage = () => {
         selectedWords: selectedWords,
       });
     }
-
-    // 사용자가 틀린 경우 오답 단어를 추가
-    if (option !== correctAnswer) {
-      setWrongVocab([...wrongVocab, selectedWord]);
-    }
   };
+
   const goToPrevious = () => {
     if (currentNumber > 0) {
       setCurrentNumber(currentNumber - 1);
@@ -108,7 +164,6 @@ const styles = StyleSheet.create({
     height: "20%",
     marginVertical: 2,
     padding: 20,
-    marginTop: 150,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 3,

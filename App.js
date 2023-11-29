@@ -8,6 +8,10 @@ import WrongTestPage from "./pages/wrongtestpage.js";
 import TodayTestAnswerPage from "./pages/todaytestanswerpage.js";
 import HomePage from "./pages/homepage.js";
 import CustomHeader from "./components/CustomHeader.js";
+import TodayListPage from "./pages/todaylistpage.js";
+import TodayNewListPage from "./pages/todaynewlistpage.js";
+import TodayReviewListPage from "./pages/todayreviewlistpage.js";
+import WrongListPage from "./pages/wronglistpage.js";
 
 const Stack = createNativeStackNavigator();
 
@@ -61,6 +65,7 @@ function App() {
             ),
           })}
         />
+
         <Stack.Screen
           name="WrongTestPage"
           component={WrongTestPage}
@@ -70,6 +75,39 @@ function App() {
             ),
           })}
         />
+
+        <Stack.Screen
+          name="TodayListPage"
+          component={TodayListPage}
+          options={({ navigation }) => ({
+            header: () => <CustomHeader navigation={navigation} title="Home" />,
+          })}
+        />
+
+        <Stack.Screen
+          name="TodayNewListPage"
+          component={TodayNewListPage}
+          options={({ navigation }) => ({
+            header: () => <CustomHeader navigation={navigation} title="Home" />,
+          })}
+        />
+
+        <Stack.Screen
+          name="TodayReviewListPage"
+          component={TodayReviewListPage}
+          options={({ navigation }) => ({
+            header: () => <CustomHeader navigation={navigation} title="Home" />,
+          })}
+        />
+
+        <Stack.Screen
+          name="WrongListPage"
+          component={WrongListPage}
+          options={({ navigation }) => ({
+            header: () => <CustomHeader navigation={navigation} title="Home" />,
+          })}
+        />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
