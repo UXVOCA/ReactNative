@@ -7,6 +7,17 @@ import wordList from "../vocab/vocab"; // vocab.js에서 단어 목록 가져오
 import _ from "lodash";
 
 const TodayTestPage = () => {
+  // const clearAsyncStorage = async () => {
+  //   try {
+  //     await AsyncStorage.clear();
+  //     console.log("AsyncStorage has been cleared!");
+  //   } catch (error) {
+  //     console.error("Error clearing AsyncStorage:", error);
+  //   }
+  // };
+
+  // // 이 함수를 필요한 곳에서 호출하여 AsyncStorage를 초기화할 수 있습니다.
+  // clearAsyncStorage();
   const navigation = useNavigation();
   const [currentNumber, setCurrentNumber] = useState(0);
   const [userAnswers, setUserAnswers] = useState([]);
@@ -30,8 +41,7 @@ const TodayTestPage = () => {
     loadWrongVocab();
   }, []);
   useEffect(() => {
-    const shuffledWords = _.shuffle(wordList); // 단어 목록 섞기
-    const selected = shuffledWords.slice(0, 10); // 10개 단어 선택
+    const selected = wordList.slice(0, 30);
     selected.forEach((word) => {
       word.options = _.shuffle([
         word.answer[0],
@@ -156,7 +166,7 @@ const styles = StyleSheet.create({
     flex: 1,
     //justifyContent: "center",
     alignItems: "center",
-    padding: 16,
+    paddingTop: 50,
     backgroundColor: "white",
   },
   card: {
@@ -192,8 +202,9 @@ const styles = StyleSheet.create({
     marginBottom: 40, // 버튼 사이의 간격
     backgroundColor: "#AABCFD", // 버튼의 배경색
     borderRadius: 20, // 버튼의 모서리 둥글기
-    paddingVertical: 30, // 상하 패딩
+    justifyContent: "center",
     width: "75%", // 버튼의 너비
+    height: "15%",
     elevation: 3, // 안드로이드에서 그림자 효과
     shadowOpacity: 0.3, // iOS에서 그림자 효과
     shadowRadius: 4, // iOS에서 그림자 둥근 효과

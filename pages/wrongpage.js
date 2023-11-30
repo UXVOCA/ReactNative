@@ -2,21 +2,21 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-const TestPage = () => {
+const WrongPage = () => {
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate("TodayTestPage")}
+        onPress={() => navigation.navigate("WrongListPage")}
       >
-        <Text style={styles.buttonText}>오늘의 단어 테스트</Text>
+        <Text style={styles.buttonText}>틀린 단어 리스트</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate("ReviewTestPage")}
+        onPress={() => navigation.navigate("WrongTestPage")}
       >
-        <Text style={styles.buttonText}>복습 단어 테스트</Text>
+        <Text style={styles.buttonText}>틀린 단어 테스트</Text>
       </TouchableOpacity>
     </View>
   );
@@ -53,4 +53,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TestPage;
+export default WrongPage;

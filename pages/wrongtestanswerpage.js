@@ -1,16 +1,15 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import words from "../vocab/vocab";
 import Icon from "react-native-vector-icons/FontAwesome";
 
-const TodayTestAnswerPage = ({ route }) => {
+const WrongTestAnswerPage = ({ route }) => {
   const { userAnswers, selectedWords } = route.params;
   const [currentNumber, setCurrentNumber] = useState(0);
 
   const currentWordData = selectedWords[currentNumber];
   const currentAnswerData = userAnswers[currentNumber];
 
-  const correctAnswer = currentWordData.answer[0]; // 정답은 answer 배열의 첫 번째 요소입니다.
+  const correctAnswer = currentWordData.answer[0];
   const isCorrect = currentAnswerData.selected === correctAnswer;
 
   const goToPrevious = () => {
@@ -24,7 +23,6 @@ const TodayTestAnswerPage = ({ route }) => {
       setCurrentNumber(currentNumber + 1);
     }
   };
-
   return (
     <View style={styles.container}>
       <View
@@ -168,4 +166,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TodayTestAnswerPage;
+export default WrongTestAnswerPage;
