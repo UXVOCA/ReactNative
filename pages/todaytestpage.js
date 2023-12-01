@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
 import wordList from "../vocab/vocab"; // vocab.js에서 단어 목록 가져오기
 import _ from "lodash";
@@ -16,7 +16,7 @@ const TodayTestPage = () => {
   //   }
   // };
 
-  // // 이 함수를 필요한 곳에서 호출하여 AsyncStorage를 초기화할 수 있습니다.
+  // // // 이 함수를 필요한 곳에서 호출하여 AsyncStorage를 초기화할 수 있습니다.
   // clearAsyncStorage();
   const navigation = useNavigation();
   const [currentNumber, setCurrentNumber] = useState(0);
@@ -31,15 +31,94 @@ const TodayTestPage = () => {
         if (storedWrongVocab !== null) {
           const wrongVocab = JSON.parse(storedWrongVocab);
           setWrongVocab(wrongVocab); // 오답 목록 상태 업데이트
-          console.log("이전에 틀린 단어 목록:", wrongVocab);
+          //console.log("이전에 틀린 단어 목록:", wrongVocab);
+        }
+        const storedSelectedWords = await AsyncStorage.getItem("selectedWords");
+        if (storedSelectedWords !== null) {
+          const selectedWords = JSON.parse(storedSelectedWords);
+          setSelectedWords(selectedWords); // todaytested 상태 업데이트
+          //console.log("todaytested 값이 변경된 단어 목록:", selectedWords);
         }
       } catch (error) {
-        console.error("오답 목록을 불러오는 데 실패했습니다.", error);
+        //console.error("오답 목록을 불러오는 데 실패했습니다.", error);
       }
     };
 
     loadWrongVocab();
   }, []);
+  useEffect(() => {
+    // vocab.js의 모든 단어에 대한 데이터를 불러오고, todaytested와 wrongcount를 업데이트하는 함수
+    const loadAndUpdateAllVocabData = async () => {
+      try {
+        // selectedWords와 wrongVocab 데이터 불러오기
+        const storedSelectedWords = await AsyncStorage.getItem("selectedWords");
+        const storedWrongVocab = await AsyncStorage.getItem("wrongVocab");
+
+        let allWordsData = wordList.map((word) => ({
+          ...word,
+          todaytested: false,
+          wrongcount: 0,
+        })); // 기본값 설정
+
+        if (storedSelectedWords !== null) {
+          const selectedWordsData = JSON.parse(storedSelectedWords);
+          allWordsData = allWordsData.map((word) => {
+            const selectedWord = selectedWordsData.find(
+              (w) => w.word === word.word
+            );
+            return {
+              ...word,
+              todaytested: selectedWord
+                ? selectedWord.todaytested
+                : word.todaytested,
+            };
+          });
+        }
+
+        if (storedWrongVocab !== null) {
+          const wrongVocabData = JSON.parse(storedWrongVocab);
+          allWordsData = allWordsData.map((word) => {
+            const wrongWord = wrongVocabData.find((w) => w.word === word.word);
+            return {
+              ...word,
+              wrongcount: wrongWord ? wrongWord.wrongcount : word.wrongcount,
+            };
+          });
+        }
+
+        console.log(
+          "vocab.js의 모든 단어들의 데이터 (업데이트 포함):",
+          allWordsData
+        );
+      } catch (error) {
+        console.error("데이터를 불러오는 데 실패했습니다.", error);
+      }
+    };
+
+    loadAndUpdateAllVocabData();
+  }, []);
+
+  const updateTodayTested = async () => {
+    // 모든 단어의 todaytested 값을 true로 설정하고 저장
+    const updatedWords = selectedWords.map((word) => ({
+      ...word,
+      todaytested: true,
+    }));
+    setSelectedWords(updatedWords);
+
+    try {
+      await AsyncStorage.setItem("selectedWords", JSON.stringify(updatedWords));
+      console.log("todaytested 값이 업데이트되었습니다.");
+      // 데이터 업데이트 후 다시 로드
+      //loadAllVocabData();
+    } catch (error) {
+      console.error(
+        "todaytested 값을 업데이트하는 중 오류가 발생했습니다.",
+        error
+      );
+    }
+  };
+
   useEffect(() => {
     const selected = wordList.slice(0, 30);
     selected.forEach((word) => {
@@ -56,17 +135,24 @@ const TodayTestPage = () => {
     });
     setSelectedWords(selected);
   }, []);
+
   const handleAnswer = (option) => {
     const selectedWord = selectedWords[currentNumber];
     const correctAnswer = selectedWord.answer[0];
 
-    const newUserAnswers = [
-      ...userAnswers,
-      { word: selectedWord.word, selected: option },
-    ];
+    // 수정된 부분: 이미 있는 답변을 업데이트
+    let newUserAnswers = [...userAnswers];
+    const existingAnswerIndex = newUserAnswers.findIndex(
+      (answer) => answer.word === selectedWord.word
+    );
+
+    if (existingAnswerIndex >= 0) {
+      newUserAnswers[existingAnswerIndex].selected = option;
+    } else {
+      newUserAnswers.push({ word: selectedWord.word, selected: option });
+    }
 
     setUserAnswers(newUserAnswers);
-
     if (option !== correctAnswer) {
       // 틀린 답변을 선택한 경우
       const existingIndex = wrongVocab.findIndex(
@@ -102,6 +188,7 @@ const TodayTestPage = () => {
     if (currentNumber < selectedWords.length - 1) {
       setCurrentNumber(currentNumber + 1);
     } else {
+      updateTodayTested();
       navigation.navigate("TodayTestAnswer", {
         userAnswers: newUserAnswers,
         selectedWords: selectedWords,
@@ -155,6 +242,18 @@ const TodayTestPage = () => {
             onPress={() => handleAnswer(option)}
           >
             <Text style={styles.buttonText}>{option}</Text>
+            {userAnswers.some(
+              (answer) =>
+                answer.word === selectedWords[currentNumber].word &&
+                answer.selected === option
+            ) && (
+              <FontAwesome
+                name="check-circle"
+                size={40}
+                color="white"
+                style={styles.checkIcon}
+              /> // 체크 원 아이콘 추가
+            )}
           </TouchableOpacity>
         ))}
     </View>
@@ -162,6 +261,11 @@ const TodayTestPage = () => {
 };
 
 const styles = StyleSheet.create({
+  checkIcon: {
+    position: "absolute",
+    right: 15,
+    justifyContent: "center",
+  },
   container: {
     flex: 1,
     //justifyContent: "center",
@@ -179,6 +283,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#A4A4A4",
     borderRadius: 30,
+    marginBottom: 20,
   },
   wordText: {
     fontSize: 40,
@@ -190,6 +295,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "40%",
     marginVertical: 20,
+    marginBottom: 40,
   },
   navButton: {
     padding: 20,
@@ -204,7 +310,7 @@ const styles = StyleSheet.create({
     borderRadius: 20, // 버튼의 모서리 둥글기
     justifyContent: "center",
     width: "75%", // 버튼의 너비
-    height: "15%",
+    height: "14%",
     elevation: 3, // 안드로이드에서 그림자 효과
     shadowOpacity: 0.3, // iOS에서 그림자 효과
     shadowRadius: 4, // iOS에서 그림자 둥근 효과
