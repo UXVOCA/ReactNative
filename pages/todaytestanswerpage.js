@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import words from "../vocab/vocab";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 const TodayTestAnswerPage = ({ route }) => {
   const { userAnswers, selectedWords } = route.params;
   const [currentNumber, setCurrentNumber] = useState(0);
-
+  console.log(userAnswers);
   const currentWordData = selectedWords[currentNumber];
   const currentAnswerData = userAnswers[currentNumber];
 
@@ -20,7 +19,7 @@ const TodayTestAnswerPage = ({ route }) => {
   };
 
   const goToNext = () => {
-    if (currentNumber < userAnswers.length - 1) {
+    if (currentNumber < selectedWords.length - 1) {
       setCurrentNumber(currentNumber + 1);
     }
   };

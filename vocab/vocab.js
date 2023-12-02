@@ -297,13 +297,6 @@ const wordList = [
     learneddate: null,
   },
   {
-    word: "gregarious",
-    answer: ["사교적인", "군집성의"],
-    learncount: 0,
-    todaytested: false,
-    learneddate: null,
-  },
-  {
     word: "hinder",
     answer: ["방해하다", "저해하다"],
     learncount: 0,

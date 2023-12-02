@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   AppState,
-  Button,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
@@ -25,12 +24,12 @@ const TodayTestPage = () => {
 
   // // // 이 함수를 필요한 곳에서 호출하여 AsyncStorage를 초기화할 수 있습니다.
   // clearAsyncStorage();
-  const navigation = useNavigation();
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [currentNumber, setCurrentNumber] = useState(0);
-  const [userAnswers, setUserAnswers] = useState([]);
-  const [selectedWords, setSelectedWords] = useState([]);
-  const [wrongVocab, setWrongVocab] = useState([]);
+  const navigation = useNavigation(); //todayteestanswerpage로 넘어가려고 선언한거
+  const [currentDate, setCurrentDate] = useState(new Date()); //다음날 됐을때를 위한 선언
+  const [currentNumber, setCurrentNumber] = useState(0); //단어 번호
+  const [userAnswers, setUserAnswers] = useState([]); //사용자 입력 버튼 (각 문제에 대한 정답)
+  const [selectedWords, setSelectedWords] = useState([]); //todaytested 상태 때문에 선언
+  const [wrongVocab, setWrongVocab] = useState([]); //틀린 단어
 
   const resetTodayTested = async () => {
     // todaytested 값을 false로 설정하는 로직
@@ -78,7 +77,7 @@ const TodayTestPage = () => {
     // 오답 목록을 불러오는 함수
     const loadWrongVocab = async () => {
       try {
-        const storedWrongVocab = await AsyncStorage.getItem("wrongVocab");
+        const storedWrongVocab = await AsyncStorage.getItem("wrongVocab"); //asyncstorage에 저장된 wrongVocab들을 불러오는거임
         if (storedWrongVocab !== null) {
           const wrongVocab = JSON.parse(storedWrongVocab);
           setWrongVocab(wrongVocab); // 오답 목록 상태 업데이트
@@ -163,7 +162,7 @@ const TodayTestPage = () => {
     console.log("learncount가 업데이트되었습니다.");
   };
   const updateTodayTested = async () => {
-    // 모든 단어의 todaytested 값을 true로 설정하고 저장
+    // 모든 selected 단어의 todaytested 값을 true로 설정하고 저장
     const updatedWords = selectedWords.map((word) => ({
       ...word,
       todaytested: true,
@@ -173,10 +172,6 @@ const TodayTestPage = () => {
     try {
       await AsyncStorage.setItem("selectedWords", JSON.stringify(updatedWords));
       console.log("todaytested 값이 업데이트되었습니다.");
-      navigation.navigate("TodayTestAnswer", {
-        userAnswers: userAnswers,
-        selectedWords: updatedWords, // 최신 상태 반영
-      });
     } catch (error) {
       console.error(
         "todaytested 값을 업데이트하는 중 오류가 발생했습니다.",
@@ -184,6 +179,7 @@ const TodayTestPage = () => {
       );
     }
   };
+
   useEffect(() => {
     const loadAndSortWords = async () => {
       try {
@@ -196,32 +192,29 @@ const TodayTestPage = () => {
           learncountData = JSON.parse(storedLearncountData);
         }
 
-        // 단어 데이터 초기화
-        let allWordsData = wordList.map((word) => ({
-          ...word,
-          todaytested: false,
-          //wrongcount: 0, 여기 12/02 7시 2분에 변경함
-        }));
+        // 단어 데이터 가져오기
+        let allWordsData = [...wordList];
 
-        // 오늘 테스트된 단어들을 먼저 선택
+        // 오늘 테스트된 단어들을 선택
         const todayTestedWords = allWordsData.filter(
           (word) => word.todaytested
         );
-        let remainingWords = allWordsData.filter((word) => !word.todaytested);
 
-        // learncount 기준으로 나머지 단어들 정렬
-        remainingWords.sort((a, b) => {
-          const learncountA = learncountData[a.word] || 0;
-          const learncountB = learncountData[b.word] || 0;
-          return learncountA - learncountB;
-        });
+        let selectedWords = [];
 
-        // 오늘 테스트할 단어들을 추가하여 총 30개가 되도록 선택
-        const numberOfWordsToSelect = 30 - todayTestedWords.length;
-        const selectedWords = [
-          ...todayTestedWords,
-          ...remainingWords.slice(0, numberOfWordsToSelect),
-        ];
+        if (todayTestedWords.length > 0) {
+          // todaytested가 true인 단어들을 모두 선택
+          selectedWords = todayTestedWords;
+        } else {
+          // 모든 todaytested 값이 false인 경우
+          // learncount 기준으로 단어들 정렬 후 상위 30개 선택
+          let sortedWords = allWordsData.sort((a, b) => {
+            const learncountA = learncountData[a.word] || 0;
+            const learncountB = learncountData[b.word] || 0;
+            return learncountA - learncountB;
+          });
+          selectedWords = sortedWords.slice(0, 30);
+        }
 
         selectedWords.forEach((word) => {
           word.options = _.shuffle([
@@ -249,7 +242,6 @@ const TodayTestPage = () => {
     const selectedWord = selectedWords[currentNumber];
     const correctAnswer = selectedWord.answer[0];
 
-    // 수정된 부분: 이미 있는 답변을 업데이트
     let newUserAnswers = [...userAnswers];
     const existingAnswerIndex = newUserAnswers.findIndex(
       (answer) => answer.word === selectedWord.word
@@ -264,15 +256,7 @@ const TodayTestPage = () => {
     setUserAnswers(newUserAnswers);
     if (option === correctAnswer) {
       console.log("정답입니다!");
-      if (!selectedWord.todaytested) {
-        // learncount 업데이트 로직
-        updateLearnCount(selectedWord.word);
-      }
     } else {
-      if (!selectedWord.todaytested) {
-        // learncount 업데이트 로직
-        updateLearnCount(selectedWord.word);
-      } //여기도 12/02 7시 05분에 변경함
       // 틀린 답변을 선택한 경우
       const existingIndex = wrongVocab.findIndex(
         (word) => word.word === selectedWord.word
@@ -301,30 +285,17 @@ const TodayTestPage = () => {
     }
 
     // 테스트의 다음 문제로 이동
-    if (currentNumber < selectedWords.length - 1) {
-      setCurrentNumber(currentNumber + 1);
+    if (currentNumber === selectedWords.length - 1) {
+      // 마지막 단어에 대한 답변 후에 updateTodayTested 호출
+      setTimeout(() => {
+        updateTodayTested(newUserAnswers);
+        navigation.navigate("TodayTestAnswer", {
+          userAnswers: newUserAnswers,
+          selectedWords: selectedWords,
+        });
+      }, 0);
     } else {
-      updateTodayTested();
-    }
-  };
-  const updateLearnCount = async (word) => {
-    try {
-      const storedLearncountData = await AsyncStorage.getItem("learncountData");
-      let learncountData = storedLearncountData
-        ? JSON.parse(storedLearncountData)
-        : {};
-
-      if (learncountData[word]) {
-        learncountData[word] += 1;
-      }
-
-      await AsyncStorage.setItem(
-        "learncountData",
-        JSON.stringify(learncountData)
-      );
-      console.log("learncount가 업데이트되었습니다.");
-    } catch (error) {
-      console.error("learncount를 업데이트하는 중 오류가 발생했습니다.", error);
+      setCurrentNumber(currentNumber + 1);
     }
   };
   const goToPrevious = () => {
