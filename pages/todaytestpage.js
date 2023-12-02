@@ -1,46 +1,301 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  AppState,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
-import words from "../vocab/todayvocab";
-import wrongVocab from "../vocab/wrongvocab";
-import _ from "lodash"; // lodash 라이브러리 임포트
+import wordList from "../vocab/vocab"; // vocab.js에서 단어 목록 가져오기
+import _ from "lodash";
 
 const TodayTestPage = () => {
-  const navigation = useNavigation();
-  const [currentNumber, setCurrentNumber] = useState(0);
-  const [userAnswers, setUserAnswers] = useState([]);
-  const [selectedWords, setSelectedWords] = useState([]);
-  const [wrongVocab, setWrongVocab] = useState([]); // 오답 단어 배열
+  // const clearAsyncStorage = async () => {
+  //   try {
+  //     await AsyncStorage.clear();
+  //     console.log("AsyncStorage has been cleared!");
+  //   } catch (error) {
+  //     console.error("Error clearing AsyncStorage:", error);
+  //   }
+  // };
+
+  // // // 이 함수를 필요한 곳에서 호출하여 AsyncStorage를 초기화할 수 있습니다.
+  // clearAsyncStorage();
+  const navigation = useNavigation(); //todayteestanswerpage로 넘어가려고 선언한거
+  const [currentDate, setCurrentDate] = useState(new Date()); //다음날 됐을때를 위한 선언
+  const [currentNumber, setCurrentNumber] = useState(0); //단어 번호
+  const [userAnswers, setUserAnswers] = useState([]); //사용자 입력 버튼 (각 문제에 대한 정답)
+  const [selectedWords, setSelectedWords] = useState([]); //todaytested 상태 때문에 선언
+  const [wrongVocab, setWrongVocab] = useState([]); //틀린 단어
+
+  const resetTodayTested = async () => {
+    // todaytested 값을 false로 설정하는 로직
+    const updatedWords = selectedWords.map((word) => ({
+      ...word,
+      todaytested: false,
+    }));
+    setSelectedWords(updatedWords);
+    try {
+      await AsyncStorage.setItem("selectedWords", JSON.stringify(updatedWords));
+      console.log("모든 todaytested 값이 초기화되었습니다.");
+    } catch (error) {
+      console.error(
+        "todaytested 값을 초기화하는 중 오류가 발생했습니다.",
+        error
+      );
+    }
+  };
+  const handleAppStateChange = (nextAppState) => {
+    if (nextAppState === "active") {
+      const now = new Date();
+      if (
+        now.getDate() !== currentDate.getDate() ||
+        now.getMonth() !== currentDate.getMonth() ||
+        now.getFullYear() !== currentDate.getFullYear()
+      ) {
+        setCurrentDate(now);
+        resetTodayTested();
+      }
+    }
+  };
+  useEffect(() => {
+    // AppState 이벤트 리스너 추가
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    // 컴포넌트가 언마운트될 때 이벤트 리스너 제거
+    return () => {
+      subscription.remove();
+    };
+  }, [currentDate, selectedWords]);
+  useEffect(() => {
+    // 오답 목록을 불러오는 함수
+    const loadWrongVocab = async () => {
+      try {
+        const storedWrongVocab = await AsyncStorage.getItem("wrongVocab"); //asyncstorage에 저장된 wrongVocab들을 불러오는거임
+        if (storedWrongVocab !== null) {
+          const wrongVocab = JSON.parse(storedWrongVocab);
+          setWrongVocab(wrongVocab); // 오답 목록 상태 업데이트
+          //console.log("이전에 틀린 단어 목록:", wrongVocab);
+        }
+        const storedSelectedWords = await AsyncStorage.getItem("selectedWords");
+        if (storedSelectedWords !== null) {
+          const selectedWords = JSON.parse(storedSelectedWords);
+          setSelectedWords(selectedWords); // todaytested 상태 업데이트
+          //console.log("todaytested 값이 변경된 단어 목록:", selectedWords);
+        }
+      } catch (error) {
+        //console.error("오답 목록을 불러오는 데 실패했습니다.", error);
+      }
+    };
+
+    loadWrongVocab();
+  }, []);
 
   useEffect(() => {
-    const shuffledWords = _.shuffle(words);
-    const selected = shuffledWords.slice(0, 10);
-    setSelectedWords(selected);
+    const loadAndUpdateAllVocabData = async () => {
+      try {
+        // learncountData, selectedWordsData, wrongVocabData 불러오기
+        const [storedLearncountData, storedSelectedWords, storedWrongVocab] =
+          await Promise.all([
+            AsyncStorage.getItem("learncountData"),
+            AsyncStorage.getItem("selectedWords"),
+            AsyncStorage.getItem("wrongVocab"),
+          ]);
+
+        let learncountData = storedLearncountData
+          ? JSON.parse(storedLearncountData)
+          : {};
+        let selectedWordsData = storedSelectedWords
+          ? JSON.parse(storedSelectedWords)
+          : [];
+        let wrongVocabData = storedWrongVocab
+          ? JSON.parse(storedWrongVocab)
+          : [];
+
+        let allWordsData = wordList.map((word) => ({
+          ...word,
+          todaytested: selectedWordsData.some(
+            (sw) => sw.word === word.word && sw.todaytested
+          ),
+          wrongcount:
+            wrongVocabData.find((wv) => wv.word === word.word)?.wrongcount || 0,
+          learncount: learncountData[word.word] || 0,
+        }));
+
+        console.log(
+          "vocab.js의 모든 단어들의 데이터 (업데이트 포함):",
+          allWordsData
+        );
+      } catch (error) {
+        console.error("데이터를 불러오는 데 실패했습니다.", error);
+      }
+    };
+
+    loadAndUpdateAllVocabData();
+  }, []);
+  const updateLearnCountForSelectedWords = async (words) => {
+    const storedLearncountData = await AsyncStorage.getItem("learncountData");
+    let learncountData = storedLearncountData
+      ? JSON.parse(storedLearncountData)
+      : {};
+
+    words.forEach((word) => {
+      if (!word.todaytested) {
+        if (learncountData[word.word]) {
+          learncountData[word.word] += 1;
+        } else {
+          learncountData[word.word] = 1;
+        }
+      }
+    });
+
+    await AsyncStorage.setItem(
+      "learncountData",
+      JSON.stringify(learncountData)
+    );
+    console.log("learncount가 업데이트되었습니다.");
+  };
+  const updateTodayTested = async () => {
+    // 모든 selected 단어의 todaytested 값을 true로 설정하고 저장
+    const updatedWords = selectedWords.map((word) => ({
+      ...word,
+      todaytested: true,
+    }));
+    setSelectedWords(updatedWords);
+    await updateLearnCountForSelectedWords(selectedWords);
+    try {
+      await AsyncStorage.setItem("selectedWords", JSON.stringify(updatedWords));
+      console.log("todaytested 값이 업데이트되었습니다.");
+    } catch (error) {
+      console.error(
+        "todaytested 값을 업데이트하는 중 오류가 발생했습니다.",
+        error
+      );
+    }
+  };
+
+  useEffect(() => {
+    const loadAndSortWords = async () => {
+      try {
+        // learncount 데이터 불러오기
+        const storedLearncountData = await AsyncStorage.getItem(
+          "learncountData"
+        );
+        let learncountData = {};
+        if (storedLearncountData !== null) {
+          learncountData = JSON.parse(storedLearncountData);
+        }
+
+        // 단어 데이터 가져오기
+        let allWordsData = [...wordList];
+
+        // 오늘 테스트된 단어들을 선택
+        const todayTestedWords = allWordsData.filter(
+          (word) => word.todaytested
+        );
+
+        let selectedWords = [];
+
+        if (todayTestedWords.length > 0) {
+          // todaytested가 true인 단어들을 모두 선택
+          selectedWords = todayTestedWords;
+        } else {
+          // 모든 todaytested 값이 false인 경우
+          // learncount 기준으로 단어들 정렬 후 상위 30개 선택
+          let sortedWords = allWordsData.sort((a, b) => {
+            const learncountA = learncountData[a.word] || 0;
+            const learncountB = learncountData[b.word] || 0;
+            return learncountA - learncountB;
+          });
+          selectedWords = sortedWords.slice(0, 30);
+        }
+
+        selectedWords.forEach((word) => {
+          word.options = _.shuffle([
+            word.answer[0],
+            ..._.sampleSize(
+              _.without(
+                wordList.map((w) => w.answer[0]),
+                word.answer[0]
+              ),
+              2
+            ),
+          ]);
+        });
+
+        setSelectedWords(selectedWords);
+      } catch (error) {
+        console.error("learncount 데이터를 불러오는 데 실패했습니다.", error);
+      }
+    };
+
+    loadAndSortWords();
   }, []);
 
   const handleAnswer = (option) => {
     const selectedWord = selectedWords[currentNumber];
-    const correctAnswer = selectedWord.answer;
+    const correctAnswer = selectedWord.answer[0];
 
-    const newUserAnswers = [
-      ...userAnswers,
-      { word: selectedWord.word, selected: option },
-    ];
+    let newUserAnswers = [...userAnswers];
+    const existingAnswerIndex = newUserAnswers.findIndex(
+      (answer) => answer.word === selectedWord.word
+    );
 
-    setUserAnswers(newUserAnswers);
-
-    if (currentNumber < selectedWords.length - 1) {
-      setCurrentNumber(currentNumber + 1);
+    if (existingAnswerIndex >= 0) {
+      newUserAnswers[existingAnswerIndex].selected = option;
     } else {
-      navigation.navigate("TodayTestAnswer", {
-        userAnswers: newUserAnswers,
-        selectedWords: selectedWords,
-      });
+      newUserAnswers.push({ word: selectedWord.word, selected: option });
     }
 
-    // 사용자가 틀린 경우 오답 단어를 추가
-    if (option !== correctAnswer) {
-      setWrongVocab([...wrongVocab, selectedWord]);
+    setUserAnswers(newUserAnswers);
+    if (option === correctAnswer) {
+      console.log("정답입니다!");
+    } else {
+      // 틀린 답변을 선택한 경우
+      const existingIndex = wrongVocab.findIndex(
+        (word) => word.word === selectedWord.word
+      );
+      let newWrongVocab;
+
+      if (existingIndex >= 0) {
+        // 이미 오답 목록에 있는 경우, wrongcount만 업데이트
+        newWrongVocab = [...wrongVocab];
+        newWrongVocab[existingIndex].wrongcount += 1;
+      } else {
+        // 새로운 오답인 경우, 목록에 추가
+        newWrongVocab = [...wrongVocab, { ...selectedWord, wrongcount: 1 }];
+      }
+
+      setWrongVocab(newWrongVocab);
+
+      // AsyncStorage에 오답 목록 저장
+      AsyncStorage.setItem("wrongVocab", JSON.stringify(newWrongVocab))
+        .then(() => {
+          console.log("오답 목록이 AsyncStorage에 업데이트 되었습니다.");
+        })
+        .catch((error) => {
+          console.error("오답 목록을 저장하는 중 오류가 발생했습니다.", error);
+        });
+    }
+
+    // 테스트의 다음 문제로 이동
+    if (currentNumber === selectedWords.length - 1) {
+      // 마지막 단어에 대한 답변 후에 updateTodayTested 호출
+      setTimeout(() => {
+        updateTodayTested(newUserAnswers);
+        navigation.navigate("TodayTestAnswer", {
+          userAnswers: newUserAnswers,
+          selectedWords: selectedWords,
+        });
+      }, 0);
+    } else {
+      setCurrentNumber(currentNumber + 1);
     }
   };
   const goToPrevious = () => {
@@ -89,6 +344,18 @@ const TodayTestPage = () => {
             onPress={() => handleAnswer(option)}
           >
             <Text style={styles.buttonText}>{option}</Text>
+            {userAnswers.some(
+              (answer) =>
+                answer.word === selectedWords[currentNumber].word &&
+                answer.selected === option
+            ) && (
+              <FontAwesome
+                name="check-circle"
+                size={40}
+                color="white"
+                style={styles.checkIcon}
+              /> // 체크 원 아이콘 추가
+            )}
           </TouchableOpacity>
         ))}
     </View>
@@ -96,11 +363,16 @@ const TodayTestPage = () => {
 };
 
 const styles = StyleSheet.create({
+  checkIcon: {
+    position: "absolute",
+    right: 15,
+    justifyContent: "center",
+  },
   container: {
     flex: 1,
     //justifyContent: "center",
     alignItems: "center",
-    padding: 16,
+    paddingTop: 50,
     backgroundColor: "white",
   },
   card: {
@@ -108,12 +380,12 @@ const styles = StyleSheet.create({
     height: "20%",
     marginVertical: 2,
     padding: 20,
-    marginTop: 150,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 3,
     borderColor: "#A4A4A4",
     borderRadius: 30,
+    marginBottom: 20,
   },
   wordText: {
     fontSize: 40,
@@ -125,6 +397,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "40%",
     marginVertical: 20,
+    marginBottom: 40,
   },
   navButton: {
     padding: 20,
@@ -137,8 +410,9 @@ const styles = StyleSheet.create({
     marginBottom: 40, // 버튼 사이의 간격
     backgroundColor: "#AABCFD", // 버튼의 배경색
     borderRadius: 20, // 버튼의 모서리 둥글기
-    paddingVertical: 30, // 상하 패딩
+    justifyContent: "center",
     width: "75%", // 버튼의 너비
+    height: "14%",
     elevation: 3, // 안드로이드에서 그림자 효과
     shadowOpacity: 0.3, // iOS에서 그림자 효과
     shadowRadius: 4, // iOS에서 그림자 둥근 효과

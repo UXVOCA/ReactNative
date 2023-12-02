@@ -6,6 +6,7 @@ import TodayTestPage from "./pages/todaytestpage.js";
 import ReviewTestPage from "./pages/reviewtestpage.js";
 import WrongTestPage from "./pages/wrongtestpage.js";
 import TodayTestAnswerPage from "./pages/todaytestanswerpage.js";
+import WrongTestAnswerPage from "./pages/wrongtestanswerpage.js";
 import HomePage from "./pages/homepage.js";
 import CustomHeader from "./components/CustomHeader.js";
 import TodayListPage from "./pages/todaylistpage.js";
@@ -53,7 +54,10 @@ function App() {
           component={TodayTestAnswerPage}
           options={({ navigation }) => ({
             header: () => (
-              <CustomHeader navigation={navigation} title="TodayTestAnswer" />
+              <CustomHeader
+                navigation={navigation}
+                title="오늘의 단어 테스트 결과"
+              />
             ),
           })}
         />
@@ -66,7 +70,15 @@ function App() {
             ),
           })}
         />
-
+        <Stack.Screen
+          name="WrongPage"
+          component={WrongPage}
+          options={({ navigation }) => ({
+            header: () => (
+              <CustomHeader navigation={navigation} title="틀린 단어" />
+            ),
+          })}
+        />
         <Stack.Screen
           name="WrongPage"
           component={WrongPage}
@@ -86,7 +98,18 @@ function App() {
             ),
           })}
         />
-
+        <Stack.Screen
+          name="WrongTestAnswerPage"
+          component={WrongTestAnswerPage}
+          options={({ navigation }) => ({
+            header: () => (
+              <CustomHeader
+                navigation={navigation}
+                title="틀린 단어 테스트 결과"
+              />
+            ),
+          })}
+        />
         <Stack.Screen
           name="TodayListPage"
           component={TodayListPage}
@@ -118,7 +141,6 @@ function App() {
             header: () => <CustomHeader navigation={navigation} title="Home" />,
           })}
         />
-
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -18,12 +18,6 @@ const TestPage = () => {
       >
         <Text style={styles.buttonText}>복습 단어 테스트</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("WrongTestPage")}
-      >
-        <Text style={styles.buttonText}>틀린 단어 테스트</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -37,11 +31,11 @@ const styles = StyleSheet.create({
     backgroundColor: "white", // 배경색을 흰색으로 설정합니다.
   },
   button: {
-    marginBottom: 40, // 버튼 사이의 간격
+    marginBottom: 70, // 버튼 사이의 간격
     backgroundColor: "#AABCFD", // 버튼의 배경색
     borderRadius: 10, // 버튼의 모서리 둥글기
-    paddingVertical: 30, // 상하 패딩
-    paddingHorizontal: 74, // 좌우 패딩
+    paddingVertical: 50, // 상하 패딩
+    paddingHorizontal: 50, // 좌우 패딩
     width: "80%", // 버튼의 너비
     elevation: 3, // 안드로이드에서 그림자 효과
     shadowOpacity: 0.3, // iOS에서 그림자 효과
@@ -54,7 +48,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white", // 텍스트 색상
     textAlign: "center", // 텍스트 정렬
-    fontSize: 30, // 텍스트 크기
+    fontSize: 40, // 텍스트 크기
     fontWeight: "bold", // 텍스트 굵기
   },
 });
