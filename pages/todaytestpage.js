@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  AppState,
+  Button,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
@@ -19,10 +26,54 @@ const TodayTestPage = () => {
   // // // 이 함수를 필요한 곳에서 호출하여 AsyncStorage를 초기화할 수 있습니다.
   // clearAsyncStorage();
   const navigation = useNavigation();
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [currentNumber, setCurrentNumber] = useState(0);
   const [userAnswers, setUserAnswers] = useState([]);
   const [selectedWords, setSelectedWords] = useState([]);
   const [wrongVocab, setWrongVocab] = useState([]);
+
+  const resetTodayTested = async () => {
+    // todaytested 값을 false로 설정하는 로직
+    const updatedWords = selectedWords.map((word) => ({
+      ...word,
+      todaytested: false,
+    }));
+    setSelectedWords(updatedWords);
+    try {
+      await AsyncStorage.setItem("selectedWords", JSON.stringify(updatedWords));
+      console.log("모든 todaytested 값이 초기화되었습니다.");
+    } catch (error) {
+      console.error(
+        "todaytested 값을 초기화하는 중 오류가 발생했습니다.",
+        error
+      );
+    }
+  };
+  const handleAppStateChange = (nextAppState) => {
+    if (nextAppState === "active") {
+      const now = new Date();
+      if (
+        now.getDate() !== currentDate.getDate() ||
+        now.getMonth() !== currentDate.getMonth() ||
+        now.getFullYear() !== currentDate.getFullYear()
+      ) {
+        setCurrentDate(now);
+        resetTodayTested();
+      }
+    }
+  };
+  useEffect(() => {
+    // AppState 이벤트 리스너 추가
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    // 컴포넌트가 언마운트될 때 이벤트 리스너 제거
+    return () => {
+      subscription.remove();
+    };
+  }, [currentDate, selectedWords]);
   useEffect(() => {
     // 오답 목록을 불러오는 함수
     const loadWrongVocab = async () => {
