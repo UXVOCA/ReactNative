@@ -1,18 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  Animated,
 } from "react-native";
 import Menu from "./Menu";
 import { AntDesign } from "@expo/vector-icons";
 
 function CustomHeader({ navigation, title }) {
   const [menuVisible, setMenuVisible] = useState(false);
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
   const toggleMenu = () => {
+    // 메뉴의 표시 상태를 토글
     setMenuVisible(!menuVisible);
   };
 
@@ -36,7 +39,13 @@ function CustomHeader({ navigation, title }) {
       </View>
       <View>
         {menuVisible && (
-          <Menu navigation={navigation} setMenuVisible={setMenuVisible} />
+          <View>
+            <Menu
+              navigation={navigation}
+              setMenuVisible={setMenuVisible}
+              menuVisible={menuVisible}
+            />
+          </View>
         )}
       </View>
     </SafeAreaView>
