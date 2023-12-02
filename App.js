@@ -14,11 +14,12 @@ import TodayNewListPage from "./pages/todaynewlistpage.js";
 import TodayReviewListPage from "./pages/todayreviewlistpage.js";
 import WrongListPage from "./pages/wronglistpage.js";
 import WrongPage from "./pages/wrongpage.js";
+import { AttendProvider } from "./store/attendContext.js";
 
 const Stack = createNativeStackNavigator();
-
 function App() {
   return (
+  <AttendProvider>
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
@@ -104,26 +105,23 @@ function App() {
           name="TodayListPage"
           component={TodayListPage}
           options={({ navigation }) => ({
-            header: () => <CustomHeader navigation={navigation} title="Home" />,
+            header: () => <CustomHeader navigation={navigation} title="오늘의 단어" />,
           })}
         />
-
         <Stack.Screen
           name="TodayNewListPage"
           component={TodayNewListPage}
           options={({ navigation }) => ({
-            header: () => <CustomHeader navigation={navigation} title="Home" />,
+            header: () => <CustomHeader navigation={navigation} title="오늘의 새로운 단어" />,
           })}
         />
-
         <Stack.Screen
           name="TodayReviewListPage"
           component={TodayReviewListPage}
           options={({ navigation }) => ({
-            header: () => <CustomHeader navigation={navigation} title="Home" />,
+            header: () => <CustomHeader navigation={navigation} title="오늘의 복습 단어" />,
           })}
         />
-
         <Stack.Screen
           name="WrongListPage"
           component={WrongListPage}
@@ -133,7 +131,7 @@ function App() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+  </AttendProvider>
   );
 }
-
 export default App;
