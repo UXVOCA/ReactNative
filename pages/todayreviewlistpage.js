@@ -1,15 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Button, StyleSheet } from 'react-native';
 import wordList from "../vocab/vocab";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const TodayReviewListPage = () => {
     const [selectedWords, setSelectedWords] = useState([]);
-    const [topWords, setTopWords] = useState([]);
+    const [viewWords, setViewWords] = useState([]);
+
+    const logWordList = async () => {
+        try {
+          const storedWordList = await AsyncStorage.getItem('wordList');
+          if (storedWordList !== null) {
+            // 값이 존재하면 로그로 출력
+            console.log('wordList:', JSON.parse(storedWordList));
+          } else {
+            console.log('wordList not found');
+          }
+        } catch (e) {
+          // 에러 처리
+          console.error('Failed to fetch wordList:', e);
+        }
+      };
+      
+      // 함수 호출
+    // logWordList();
 
     useEffect(() => {
-        const sortedWords = [...wordList].sort((a, b) => a.learncount - b.learncount);
-        setTopWords(sortedWords.slice(0, 5));
+        const fetchWordList = async () => {
+            try {
+                const jsonValue = await AsyncStorage.getItem('wordList');
+                let storedWordList = jsonValue != null ? JSON.parse(jsonValue) : [];
+                console.log('storedWordList:', storedWordList);
+    
+                const today = new Date();
+                // 날짜만을 고려하기 위해, 날짜 문자열을 생성 후 다시 Date 객체로 변환
+                const todayDateOnly = new Date();
+    
+                const filteredWords = storedWordList.filter(word => {
+                    const learnDate = new Date(word.learneddate);
+                    // learnDate도 마찬가지로 날짜만 고려
+                    const learnDateOnly = new Date(learnDate.toISOString().split('T')[0]);
+                    console.log(todayDateOnly);
+                    console.log(learnDateOnly);
+                    const differenceInDays = Math.ceil((todayDateOnly - learnDateOnly) / (1000 * 3600 * 24));
+                    console.log('differenceInDays:', differenceInDays);
+                    return [1, 5, 7, 15].includes(differenceInDays);
+                });
+    
+                console.log('filteredWords:', filteredWords);
+                setViewWords(filteredWords);
+            } catch (e) {
+                console.error('Failed to fetch wordList:', e);
+            }
+        };
+    
+        fetchWordList();
     }, []);
+    
+
+    // useEffect(() => {
+    //     console.log('viewWords:', viewWords);
+    // }, [viewWords]);
 
     // 단어 선택 토글 함수
     const toggleWordSelection = index => {
@@ -52,7 +104,7 @@ const TodayReviewListPage = () => {
 
             {/* 단어 리스트 */}
             <ScrollView style={styles.wordlist}>
-                {topWords.map((item, index) => (
+                {viewWords.map((item, index) => (
                     <TouchableOpacity
                         key={index}
                         style={[
@@ -71,7 +123,7 @@ const TodayReviewListPage = () => {
                             <Text style={[
                                 styles.dateText,
                                 selectedWords.includes(index) && styles.selectedWordText // 선택된 단어의 글씨 색 변경 
-                            ]}> D+{calculateDateDifference(item.learndate)}</Text>   
+                            ]}> D+{calculateDateDifference(item.learneddate)}</Text>   
                         </View>
 
                         {item.answer.map((meaning, meaningIndex) => (
@@ -174,11 +226,11 @@ export default TodayReviewListPage;
 
 // const TodayReviewListPage = () => {
 //     const [selectedWords, setSelectedWords] = useState([]);
-//     const [topWords, setTopWords] = useState([]);
+//     const [viewWords, setViewWords] = useState([]);
 
 //     useEffect(() => {
 //         const sortedWords = [...wordList].sort((a, b) => a.learncount - b.learncount);
-//         setTopWords(sortedWords.slice(0, 5));
+//         setViewWords(sortedWords.slice(0, 5));
 //     }, []);
 
 //     // 단어 선택 토글 함수
@@ -213,7 +265,7 @@ export default TodayReviewListPage;
 
 //             {/* 단어 리스트 */}
 //             {/* <ScrollView style={styles.wordlist}>
-//                 {topWords.map((item, index) => (
+//                 {viewWords.map((item, index) => (
 //                     <TouchableOpacity
 //                         key={index}
 //                         style={[
@@ -237,7 +289,7 @@ export default TodayReviewListPage;
 //             </ScrollView> */}
 //             {/* 단어 리스트 */}
 //             <ScrollView style={styles.wordlist}>
-//                 {topWords.map((item, index) => (
+//                 {viewWords.map((item, index) => (
 //                     <TouchableOpacity
 //                         key={index}
 //                         style={[
