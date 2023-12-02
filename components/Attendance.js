@@ -21,18 +21,18 @@ const caculateAttendancePercentage = (markedDates, year, month) => {
   return (attendedDays / daysInMonth) * 100;
 };
 
-function Attendance() {
+function Attendance({ currentYear, currentMonth }) {
   const [fillPercentage, setFillPercentage] = useState(0);
   const { attendData } = useContext(attendContext);
 
   useEffect(() => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-
-    let percentage = caculateAttendancePercentage(attendData, year, month);
+    let percentage = caculateAttendancePercentage(
+      attendData,
+      currentYear,
+      currentMonth
+    );
     setFillPercentage(percentage);
-  }, []);
+  }, [attendData, currentYear, currentMonth]);
 
   return (
     <View style={styles.attndance}>
