@@ -14,9 +14,12 @@ import TodayNewListPage from "./pages/todaynewlistpage.js";
 import TodayReviewListPage from "./pages/todayreviewlistpage.js";
 import WrongListPage from "./pages/wronglistpage.js";
 import WrongPage from "./pages/wrongpage.js";
+import { AttendProvider } from "./store/attendContext.js";
+
 const Stack = createNativeStackNavigator();
 function App() {
   return (
+  <AttendProvider>
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
@@ -128,6 +131,7 @@ function App() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+  </AttendProvider>
   );
 }
 export default App;
