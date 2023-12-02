@@ -1,58 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Button, StyleSheet } from 'react-native';
 import wordList from "../vocab/vocab";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-const TodayNewListPage = async() => {
+const TodayNewListPage = () => {
     const [selectedWords, setSelectedWords] = useState([]);
     const [topWords, setTopWords] = useState([]);
-
-    // const getData = async (key) => {
-    //     try {
-    //       const value = await AsyncStorage.getItem(key);
-    //       if (value !== null) {
-    //         // 값 처리
-    //       }
-    //     } catch (e) {
-    //       // 검색 중 에러 처리
-    //     }
-    // };
-
-    // const storeWordList = async (wordList) => {
-    //     try {
-    //       const jsonValue = JSON.stringify(wordList);
-    //       await AsyncStorage.setItem('wordList', jsonValue);
-    //     } catch (e) {
-    //       // 저장 중 에러 처리
-    //     }
-    //   };
-      
-    //   // wordList 저장
-    // storeWordList(wordList);
-
-    // const getSortedWordList = async () => {
-    //     try {
-    //       const jsonValue = await AsyncStorage.getItem('wordList');
-    //       let wordList = jsonValue != null ? JSON.parse(jsonValue) : [];
-      
-    //       // learncount 기준으로 정렬
-    //       wordList.sort((a, b) => a.learncount - b.learncount);
-      
-    //       // 상위 30개 항목 추출
-    //       return wordList.slice(0, 30);
-    //     } catch (e) {
-    //       // 검색 중 에러 처리
-    //       return []; // 에러가 발생한 경우 빈 배열 반환
-    //     }
-    // };
-
-
-    // // 사용 예시
-    // const top30Words = await getSortedWordList();
-    // console.log(top30Words);
-      
-      
 
     useEffect(() => {
         const sortedWords = [...wordList].sort((a, b) => a.learncount - b.learncount);
