@@ -46,45 +46,37 @@ const TodayTestPage = () => {
 
     loadWrongVocab();
   }, []);
+
   useEffect(() => {
-    // vocab.js의 모든 단어에 대한 데이터를 불러오고, todaytested와 wrongcount를 업데이트하는 함수
     const loadAndUpdateAllVocabData = async () => {
       try {
-        // selectedWords와 wrongVocab 데이터 불러오기
-        const storedSelectedWords = await AsyncStorage.getItem("selectedWords");
-        const storedWrongVocab = await AsyncStorage.getItem("wrongVocab");
+        // learncountData, selectedWordsData, wrongVocabData 불러오기
+        const [storedLearncountData, storedSelectedWords, storedWrongVocab] =
+          await Promise.all([
+            AsyncStorage.getItem("learncountData"),
+            AsyncStorage.getItem("selectedWords"),
+            AsyncStorage.getItem("wrongVocab"),
+          ]);
+
+        let learncountData = storedLearncountData
+          ? JSON.parse(storedLearncountData)
+          : {};
+        let selectedWordsData = storedSelectedWords
+          ? JSON.parse(storedSelectedWords)
+          : [];
+        let wrongVocabData = storedWrongVocab
+          ? JSON.parse(storedWrongVocab)
+          : [];
 
         let allWordsData = wordList.map((word) => ({
           ...word,
-          todaytested: false,
-          wrongcount: 0,
-        })); // 기본값 설정
-
-        if (storedSelectedWords !== null) {
-          const selectedWordsData = JSON.parse(storedSelectedWords);
-          allWordsData = allWordsData.map((word) => {
-            const selectedWord = selectedWordsData.find(
-              (w) => w.word === word.word
-            );
-            return {
-              ...word,
-              todaytested: selectedWord
-                ? selectedWord.todaytested
-                : word.todaytested,
-            };
-          });
-        }
-
-        if (storedWrongVocab !== null) {
-          const wrongVocabData = JSON.parse(storedWrongVocab);
-          allWordsData = allWordsData.map((word) => {
-            const wrongWord = wrongVocabData.find((w) => w.word === word.word);
-            return {
-              ...word,
-              wrongcount: wrongWord ? wrongWord.wrongcount : word.wrongcount,
-            };
-          });
-        }
+          todaytested: selectedWordsData.some(
+            (sw) => sw.word === word.word && sw.todaytested
+          ),
+          wrongcount:
+            wrongVocabData.find((wv) => wv.word === word.word)?.wrongcount || 0,
+          learncount: learncountData[word.word] || 0,
+        }));
 
         console.log(
           "vocab.js의 모든 단어들의 데이터 (업데이트 포함):",
@@ -97,7 +89,28 @@ const TodayTestPage = () => {
 
     loadAndUpdateAllVocabData();
   }, []);
+  const updateLearnCountForSelectedWords = async (words) => {
+    const storedLearncountData = await AsyncStorage.getItem("learncountData");
+    let learncountData = storedLearncountData
+      ? JSON.parse(storedLearncountData)
+      : {};
 
+    words.forEach((word) => {
+      if (!word.todaytested) {
+        if (learncountData[word.word]) {
+          learncountData[word.word] += 1;
+        } else {
+          learncountData[word.word] = 1;
+        }
+      }
+    });
+
+    await AsyncStorage.setItem(
+      "learncountData",
+      JSON.stringify(learncountData)
+    );
+    console.log("learncount가 업데이트되었습니다.");
+  };
   const updateTodayTested = async () => {
     // 모든 단어의 todaytested 값을 true로 설정하고 저장
     const updatedWords = selectedWords.map((word) => ({
@@ -105,12 +118,14 @@ const TodayTestPage = () => {
       todaytested: true,
     }));
     setSelectedWords(updatedWords);
-
+    await updateLearnCountForSelectedWords(selectedWords);
     try {
       await AsyncStorage.setItem("selectedWords", JSON.stringify(updatedWords));
       console.log("todaytested 값이 업데이트되었습니다.");
-      // 데이터 업데이트 후 다시 로드
-      //loadAllVocabData();
+      navigation.navigate("TodayTestAnswer", {
+        userAnswers: userAnswers,
+        selectedWords: updatedWords, // 최신 상태 반영
+      });
     } catch (error) {
       console.error(
         "todaytested 값을 업데이트하는 중 오류가 발생했습니다.",
@@ -118,22 +133,65 @@ const TodayTestPage = () => {
       );
     }
   };
-
   useEffect(() => {
-    const selected = wordList.slice(0, 30);
-    selected.forEach((word) => {
-      word.options = _.shuffle([
-        word.answer[0],
-        ..._.sampleSize(
-          _.without(
-            wordList.map((w) => w.answer[0]),
-            word.answer[0]
-          ),
-          2
-        ),
-      ]); // 답변 옵션 생성
-    });
-    setSelectedWords(selected);
+    const loadAndSortWords = async () => {
+      try {
+        // learncount 데이터 불러오기
+        const storedLearncountData = await AsyncStorage.getItem(
+          "learncountData"
+        );
+        let learncountData = {};
+        if (storedLearncountData !== null) {
+          learncountData = JSON.parse(storedLearncountData);
+        }
+
+        // 단어 데이터 초기화
+        let allWordsData = wordList.map((word) => ({
+          ...word,
+          todaytested: false,
+          //wrongcount: 0, 여기 12/02 7시 2분에 변경함
+        }));
+
+        // 오늘 테스트된 단어들을 먼저 선택
+        const todayTestedWords = allWordsData.filter(
+          (word) => word.todaytested
+        );
+        let remainingWords = allWordsData.filter((word) => !word.todaytested);
+
+        // learncount 기준으로 나머지 단어들 정렬
+        remainingWords.sort((a, b) => {
+          const learncountA = learncountData[a.word] || 0;
+          const learncountB = learncountData[b.word] || 0;
+          return learncountA - learncountB;
+        });
+
+        // 오늘 테스트할 단어들을 추가하여 총 30개가 되도록 선택
+        const numberOfWordsToSelect = 30 - todayTestedWords.length;
+        const selectedWords = [
+          ...todayTestedWords,
+          ...remainingWords.slice(0, numberOfWordsToSelect),
+        ];
+
+        selectedWords.forEach((word) => {
+          word.options = _.shuffle([
+            word.answer[0],
+            ..._.sampleSize(
+              _.without(
+                wordList.map((w) => w.answer[0]),
+                word.answer[0]
+              ),
+              2
+            ),
+          ]);
+        });
+
+        setSelectedWords(selectedWords);
+      } catch (error) {
+        console.error("learncount 데이터를 불러오는 데 실패했습니다.", error);
+      }
+    };
+
+    loadAndSortWords();
   }, []);
 
   const handleAnswer = (option) => {
@@ -153,7 +211,17 @@ const TodayTestPage = () => {
     }
 
     setUserAnswers(newUserAnswers);
-    if (option !== correctAnswer) {
+    if (option === correctAnswer) {
+      console.log("정답입니다!");
+      if (!selectedWord.todaytested) {
+        // learncount 업데이트 로직
+        updateLearnCount(selectedWord.word);
+      }
+    } else {
+      if (!selectedWord.todaytested) {
+        // learncount 업데이트 로직
+        updateLearnCount(selectedWord.word);
+      } //여기도 12/02 7시 05분에 변경함
       // 틀린 답변을 선택한 경우
       const existingIndex = wrongVocab.findIndex(
         (word) => word.word === selectedWord.word
@@ -179,9 +247,6 @@ const TodayTestPage = () => {
         .catch((error) => {
           console.error("오답 목록을 저장하는 중 오류가 발생했습니다.", error);
         });
-    } else {
-      // 정답을 선택한 경우
-      console.log("정답입니다!");
     }
 
     // 테스트의 다음 문제로 이동
@@ -189,13 +254,28 @@ const TodayTestPage = () => {
       setCurrentNumber(currentNumber + 1);
     } else {
       updateTodayTested();
-      navigation.navigate("TodayTestAnswer", {
-        userAnswers: newUserAnswers,
-        selectedWords: selectedWords,
-      });
     }
   };
+  const updateLearnCount = async (word) => {
+    try {
+      const storedLearncountData = await AsyncStorage.getItem("learncountData");
+      let learncountData = storedLearncountData
+        ? JSON.parse(storedLearncountData)
+        : {};
 
+      if (learncountData[word]) {
+        learncountData[word] += 1;
+      }
+
+      await AsyncStorage.setItem(
+        "learncountData",
+        JSON.stringify(learncountData)
+      );
+      console.log("learncount가 업데이트되었습니다.");
+    } catch (error) {
+      console.error("learncount를 업데이트하는 중 오류가 발생했습니다.", error);
+    }
+  };
   const goToPrevious = () => {
     if (currentNumber > 0) {
       setCurrentNumber(currentNumber - 1);
