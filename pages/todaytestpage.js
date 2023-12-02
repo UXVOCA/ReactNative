@@ -118,15 +118,20 @@ const TodayTestPage = () => {
           ? JSON.parse(storedWrongVocab)
           : [];
 
-        let allWordsData = wordList.map((word) => ({
-          ...word,
-          todaytested: selectedWordsData.some(
-            (sw) => sw.word === word.word && sw.todaytested
-          ),
-          wrongcount:
-            wrongVocabData.find((wv) => wv.word === word.word)?.wrongcount || 0,
-          learncount: learncountData[word.word] || 0,
-        }));
+        let allWordsData = wordList.map((word) => {
+          const selectedWordData = selectedWordsData.find(
+            (sw) => sw.word === word.word
+          );
+          return {
+            ...word,
+            todaytested: selectedWordData?.todaytested || false,
+            wrongcount:
+              wrongVocabData.find((wv) => wv.word === word.word)?.wrongcount ||
+              0,
+            learncount: learncountData[word.word] || 0,
+            learneddate: selectedWordData?.learneddate || null, // learneddate 추가
+          };
+        });
 
         console.log(
           "vocab.js의 모든 단어들의 데이터 (업데이트 포함):",
@@ -238,9 +243,11 @@ const TodayTestPage = () => {
     loadAndSortWords();
   }, []);
 
-  const handleAnswer = (option) => {
+  const handleAnswer = async (option) => {
     const selectedWord = selectedWords[currentNumber];
+
     const correctAnswer = selectedWord.answer[0];
+    const todayDate = new Date().toISOString().split("T")[0]; // 현재 날짜를 YYYY-MM-DD 형식으로 가져옵니다.
 
     let newUserAnswers = [...userAnswers];
     const existingAnswerIndex = newUserAnswers.findIndex(
@@ -256,7 +263,21 @@ const TodayTestPage = () => {
     setUserAnswers(newUserAnswers);
     if (option === correctAnswer) {
       console.log("정답입니다!");
+      selectedWords[currentNumber].learneddate = todayDate;
+      const wrongWordIndex = wrongVocab.findIndex(
+        (word) => word.word === selectedWord.word
+      );
+      if (wrongWordIndex >= 0) {
+        wrongVocab[wrongWordIndex].wrongcount = Math.max(
+          wrongVocab[wrongWordIndex].wrongcount - 1,
+          0
+        );
+        if (wrongVocab[wrongWordIndex].wrongcount === 0) {
+          wrongVocab.splice(wrongWordIndex, 1); // wrongcount가 0이면 배열에서 제거
+        }
+      }
     } else {
+      selectedWords[currentNumber].learneddate = null;
       // 틀린 답변을 선택한 경우
       const existingIndex = wrongVocab.findIndex(
         (word) => word.word === selectedWord.word
@@ -283,7 +304,16 @@ const TodayTestPage = () => {
           console.error("오답 목록을 저장하는 중 오류가 발생했습니다.", error);
         });
     }
-
+    setSelectedWords([...selectedWords]);
+    try {
+      await AsyncStorage.setItem(
+        "selectedWords",
+        JSON.stringify(selectedWords)
+      );
+      console.log("selectedWords가 AsyncStorage에 업데이트 되었습니다.");
+    } catch (error) {
+      console.error("selectedWords를 저장하는 중 오류가 발생했습니다.", error);
+    }
     // 테스트의 다음 문제로 이동
     if (currentNumber === selectedWords.length - 1) {
       // 마지막 단어에 대한 답변 후에 updateTodayTested 호출
