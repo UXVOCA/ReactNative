@@ -4,6 +4,8 @@ import { Calendar } from "react-native-calendars";
 import Attendance from "../components/Attendance";
 import { attendContext } from "../store/attendContext";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 function HomePage() {
   const { attendData } = useContext(attendContext);
@@ -12,6 +14,48 @@ function HomePage() {
   const [attendanceStreak, setAttendanceStreak] = useState(0);
 
   const navigation = useNavigation();
+
+  //날짜 바뀌었는지 확인
+  const checkAndUpdate = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0]; // 현재 날짜 (YYYY-MM-DD)
+      const lastVisitDate = await AsyncStorage.getItem('lastVisitDate');
+
+      console.log("최종방문일 : ",lastVisitDate);
+      console.log("오늘: ", today);
+      if (lastVisitDate !== today) {
+        await updateWordList(); // 필요한 갱신 작업 수행
+        await AsyncStorage.setItem('lastVisitDate', today); // 오늘 날짜로 갱신
+      }
+    } catch (e) {
+      console.error('Error checking last visit date:', e);
+    }
+  };
+  
+  // 앱 시작 시 호출
+  checkAndUpdate();
+
+  //바뀌었으면 learncount와 todaytested갱신
+  const updateWordList = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('wordList');
+      let wordList = jsonValue != null ? JSON.parse(jsonValue) : [];
+  
+      // 단어 목록 업데이트
+      const updatedWordList = wordList.map(word => ({
+        ...word,
+        learncount: word.todaytested ? word.learncount + 1 : word.learncount,
+        todaytested: false
+      }));
+  
+      // 업데이트된 목록 저장
+      await AsyncStorage.setItem('wordList', JSON.stringify(updatedWordList));
+    } catch (e) {
+      console.error('Failed to update wordList:', e);
+    }
+  };
+
+
 
   const handleMonthChange = (month) => {
     setCurrentYear(month.year);
