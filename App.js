@@ -59,7 +59,15 @@ function App() {
             ),
           })}
         />
-
+        <Stack.Screen
+          name="ReviewTestPage"
+          component={ReviewTestPage}
+          options={({ navigation }) => ({
+            header: () => (
+              <CustomHeader navigation={navigation} title="복습 단어 테스트" />
+            ),
+          })}
+        />
         <Stack.Screen
           name="WrongPage"
           component={WrongPage}
