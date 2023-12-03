@@ -190,13 +190,7 @@ function HomePage() {
         console.error("Error updating attendance", error);
       }
     })();
-  }, [
-    correctAnswersCount,
-    correctReviewedWordsCount,
-    totalReviewedWordsCount,
-    wrongWordCount,
-    updateAttendance,
-  ]);
+  }, []);
 
   return (
     <View style={styles.container}>
