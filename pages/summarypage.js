@@ -10,28 +10,41 @@ function SummaryPage() {
 
   const data = attendData[selectedDate] || {};
   const todayWordCount = 30; // 오늘의 단어 개수
-  const reviewWordCount = 30; // 복습 단어 개수
+
+  // 선택된 날짜 바로 이전 날짜를 찾는 함수
+  const findLastAttendedDate = (attendData, selectedDate) => {
+    const dates = Object.keys(attendData).filter(
+      (date) => attendData[date].marked
+    );
+    const sortedDates = dates.sort((a, b) => new Date(b) - new Date(a));
+    const selectedIndex = sortedDates.findIndex(
+      (date) => date === selectedDate
+    );
+    return sortedDates[selectedIndex + 1] || null; // 선택된 날짜의 바로 이전 날짜 반환
+  };
+
+  // 이전 출석 날짜 찾기
+  const lastAttendedDate = findLastAttendedDate(attendData, selectedDate);
+  const previousData = lastAttendedDate ? attendData[lastAttendedDate] : null;
 
   // 틀린 단어 변화 계산
-  // 이전 출석 날짜 찾기
-  const sortedDates = Object.keys(attendData)
-    .filter((date) => date < selectedDate && attendData[date].marked)
-    .sort((a, b) => new Date(b) - new Date(a)); // 내림차순 정렬
-
-  const lastAttendedDate = sortedDates[0] || null;
-  const previousData = lastAttendedDate ? attendData[lastAttendedDate] : {};
-
   let wrongWordChange = "변화 없습니다.";
-  if (previousData.wrongcount && data.wrongcount > previousData.wrongcount) {
+  if (!previousData) {
+    // 이전 출석 데이터가 없을 경우
+    if (data.wrongcount > 0) {
+      wrongWordChange = `이전 출석 데이터가 없습니다. 틀린 단어가 ${data.wrongcount}개 있습니다.`;
+    } else {
+      wrongWordChange = `이전 출석 데이터가 없습니다. 틀린 단어가 없습니다.`;
+    }
+  } else if (data.wrongcount > (previousData.wrongcount || 0)) {
+    // 이전 데이터가 있고 틀린 단어가 증가한 경우
     wrongWordChange = `지난번보다 틀린 단어가 ${
-      data.wrongcount - previousData.wrongcount
+      data.wrongcount - (previousData.wrongcount || 0)
     }개 증가했습니다.`;
-  } else if (
-    previousData.wrongcount &&
-    data.wrongcount < previousData.wrongcount
-  ) {
+  } else if (data.wrongcount < (previousData.wrongcount || 0)) {
+    // 이전 데이터가 있고 틀린 단어가 감소한 경우
     wrongWordChange = `지난번보다 틀린 단어가 ${
-      previousData.wrongcount - data.wrongcount
+      (previousData.wrongcount || 0) - data.wrongcount
     }개 감소했습니다.`;
   }
 
@@ -39,12 +52,14 @@ function SummaryPage() {
     <View style={styles.container}>
       <Text style={styles.title}>Selected Date: {selectedDate}</Text>
       <Text style={styles.result}>
-        오늘의 단어: {data.todaytestresult || "테스트를 아직 안 봤습니다."} /{" "}
-        {todayWordCount}
+        오늘의 단어:{" "}
+        {`${data.todaytestresult} / ${todayWordCount}` ||
+          "테스트를 아직 안 봤습니다."}
       </Text>
       <Text style={styles.result}>
-        복습 단어: {data.reviewtestresult || "테스트를 아직 안 봤습니다."} /{" "}
-        {reviewWordCount}
+        복습 단어:{" "}
+        {`${data.reviewtestresult} / ${data.totalReviewCount}` ||
+          "테스트를 아직 안 봤습니다."}
       </Text>
       <Text style={styles.result}>틀린 단어: {data.wrongcount}</Text>
       <Text style={styles.change}>{wrongWordChange}</Text>
