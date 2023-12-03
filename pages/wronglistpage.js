@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Button, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Button,
+  StyleSheet,
+} from "react-native";
 import wordList from "../vocab/vocab";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const WrongListPage = () => {
   const [selectedWords, setSelectedWords] = useState([]);
@@ -16,28 +23,27 @@ const WrongListPage = () => {
   useEffect(() => {
     const fetchAndSortWords = async () => {
       try {
-        const jsonValue = await AsyncStorage.getItem('wordList');
+        const jsonValue = await AsyncStorage.getItem("wrongVocab");
         let storedWordList = jsonValue != null ? JSON.parse(jsonValue) : [];
 
         const filteredAndSortedWords = storedWordList
-          .filter(word => word.wrongcount >= 1) // wrongcount가 1 이상인 단어만 필터링
+          .filter((word) => word.wrongcount >= 1) // wrongcount가 1 이상인 단어만 필터링
           .sort((a, b) => b.wrongcount - a.wrongcount); // wrongcount 기준으로 내림차순 정렬
 
         setViewWords(filteredAndSortedWords);
       } catch (e) {
-        console.error('Failed to fetch wordList:', e);
+        console.error("Failed to fetch wordList:", e);
       }
     };
 
     fetchAndSortWords();
   }, []);
-
-
+  //
   // 단어 선택 토글 함수
-  const toggleWordSelection = index => {
-    setSelectedWords(prevState =>
+  const toggleWordSelection = (index) => {
+    setSelectedWords((prevState) =>
       prevState.includes(index)
-        ? prevState.filter(i => i !== index)
+        ? prevState.filter((i) => i !== index)
         : [...prevState, index]
     );
   };
@@ -56,10 +62,8 @@ const WrongListPage = () => {
   //     return differenceInDays;
   // };
 
-
   return (
     <View style={styles.container}>
-
       {/* 헤더 */}
       {/* <View style={styles.header}>
         <Text style={styles.headerTitle}>틀린 단어</Text>
@@ -67,7 +71,10 @@ const WrongListPage = () => {
 
       {/* 모두 해제 버튼 */}
       <View style={styles.checkResetBtnContainer}>
-        <TouchableOpacity onPress={resetSelections} style={styles.checkResetBtn}>
+        <TouchableOpacity
+          onPress={resetSelections}
+          style={styles.checkResetBtn}
+        >
           <Text style={styles.checkResetBtnText}>모두 해제</Text>
         </TouchableOpacity>
       </View>
@@ -84,23 +91,32 @@ const WrongListPage = () => {
             onPress={() => toggleWordSelection(index)}
           >
             <View style={styles.wordheader}>
-              <Text style={[
-                styles.wordText,
-                selectedWords.includes(index) && styles.selectedWordText // 선택된 단어의 글씨 색 변경
-              ]}>
+              <Text
+                style={[
+                  styles.wordText,
+                  selectedWords.includes(index) && styles.selectedWordText, // 선택된 단어의 글씨 색 변경
+                ]}
+              >
                 {item.word}
               </Text>
-              <Text style={[
-                styles.dateText,
-                selectedWords.includes(index) && styles.selectedWordText // 선택된 단어의 글씨 색 변경 
-              ]}>{item.wrongcount}회 오답</Text>  
+              <Text
+                style={[
+                  styles.dateText,
+                  selectedWords.includes(index) && styles.selectedWordText, // 선택된 단어의 글씨 색 변경
+                ]}
+              >
+                {item.wrongcount}회 오답
+              </Text>
             </View>
 
             {item.answer.map((meaning, meaningIndex) => (
-              <Text key={meaningIndex} style={[
-                styles.wordText,
-                selectedWords.includes(index) && styles.selectedWordText // 선택된 단어의 글씨 색 변경
-              ]}>
+              <Text
+                key={meaningIndex}
+                style={[
+                  styles.wordText,
+                  selectedWords.includes(index) && styles.selectedWordText, // 선택된 단어의 글씨 색 변경
+                ]}
+              >
                 {meaningIndex + 1}. {meaning}
               </Text>
             ))}
@@ -124,9 +140,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     backgroundColor: "white",
     width: "90%",
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   headerTitle: {
     fontSize: 30,
@@ -134,22 +150,22 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   checkResetBtnContainer: {
-    flexDirection: 'row-reverse',
-    width: '80%',
+    flexDirection: "row-reverse",
+    width: "80%",
     paddingTop: 0,
     paddingBottom: 10,
   },
   checkResetBtn: {
-    color: 'black',
+    color: "black",
   },
   checkResetBtnText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     borderWidth: 1,
     borderRadius: 10,
     padding: 2,
   },
   wordlist: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     width: "90%",
   },
   wordRow: {
@@ -168,24 +184,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   wordheader: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   dateText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 10,
-    color: 'grey',
+    color: "grey",
   },
-  selectedWord: {
-  },
+  selectedWord: {},
   selectedWordText: {
-    color: 'red',
+    color: "red",
   },
   wordText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 
 export default WrongListPage;
-
