@@ -13,24 +13,34 @@ const ReviewTestPage = () => {
   const [optionsMap, setOptionsMap] = useState({});
   const [options, setOptions] = useState([]);
   const [userAnswers, setUserAnswers] = useState({});
-
   const handleAnswer = (selectedOption) => {
-    setUserAnswers({
+    const updatedUserAnswers = {
       ...userAnswers,
       [currentWord.word]: selectedOption,
-    });
+    };
+
+    // 콘솔 로그를 통해 데이터 확인
+    console.log("Updated User Answers:", updatedUserAnswers);
+    console.log("View Words with Options:", viewWords);
 
     if (currentWordIndex < viewWords.length - 1) {
+      setUserAnswers(updatedUserAnswers);
       setCurrentWordIndex(currentWordIndex + 1);
     } else {
-      navigation.navigate("ReviewTestAnswerPage", { userAnswers }); // ReviewTestAnswerPage로 이동하면서 userAnswers 데이터 전달
-      // 로직 완료 시 처리
+      // ReviewTestAnswerPage로 이동하기 전에 데이터 확인
+      console.log("Final User Answers:", updatedUserAnswers);
+      console.log("Final View Words with Options:", viewWords);
+      navigation.navigate("ReviewTestAnswerPage", {
+        userAnswers,
+        viewWords,
+      });
     }
   };
 
   useEffect(() => {
     if (currentWordIndex < viewWords.length) {
       setCurrentWord(viewWords[currentWordIndex]);
+      setOptions(viewWords[currentWordIndex].options || []);
     } else {
       setCurrentWord({});
     }
@@ -74,8 +84,20 @@ const ReviewTestPage = () => {
           return [0, 5, 7, 15].includes(differenceInDays);
         });
 
-        setViewWords(filteredWords);
-        setCurrentWordIndex(0);
+        // 올바른 답과 잘못된 보기를 혼합하여 options 배열 생성
+        const updatedViewWords = filteredWords.map((word) => {
+          const correctAnswer = word.answer[0];
+          const wrongOptions = _.sampleSize(
+            filteredWords
+              .filter((w) => w.word !== word.word)
+              .map((w) => w.answer[0]),
+            2
+          );
+          const options = _.shuffle([correctAnswer, ...wrongOptions]);
+          return { ...word, options };
+        });
+
+        setViewWords(updatedViewWords);
       } catch (e) {
         console.error("Failed to fetch wordList:", e);
       }

@@ -1,29 +1,23 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 
 const ReviewTestAnswerPage = ({ route }) => {
   const { userAnswers, viewWords } = route.params;
-  const [currentNumber, setCurrentNumber] = useState(0);
-  const currentWordData = viewWords[currentNumber];
-  const currentAnswerData = userAnswers[currentWordData.word];
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const currentWord = viewWords[currentWordIndex];
+  const userAnswer = userAnswers[currentWord.word];
+  const isCorrect = userAnswer === currentWord.answer[0];
 
-  const correctAnswer =
-    currentWordData.answer && currentWordData.answer.length > 0
-      ? currentWordData.answer[0]
-      : null;
-  const isCorrect = currentAnswerData === correctAnswer;
-
-  const goToPrevious = () => {
-    if (currentNumber > 0) {
-      setCurrentNumber(currentNumber - 1);
+  const goToPreviousWord = () => {
+    if (currentWordIndex > 0) {
+      setCurrentWordIndex(currentWordIndex - 1);
     }
   };
 
-  const goToNext = () => {
-    if (currentNumber < viewWords.length - 1) {
-      setCurrentNumber(currentNumber + 1);
+  const goToNextWord = () => {
+    if (currentWordIndex < viewWords.length - 1) {
+      setCurrentWordIndex(currentWordIndex + 1);
     }
   };
 
@@ -32,64 +26,63 @@ const ReviewTestAnswerPage = ({ route }) => {
       <View
         style={[styles.card, { backgroundColor: isCorrect ? "green" : "red" }]}
       >
-        <Text style={styles.wordText}>{currentWordData.word}</Text>
+        <Text style={styles.wordText}>{currentWord.word}</Text>
       </View>
       <View style={styles.navigation}>
-        <TouchableOpacity style={styles.navButton} onPress={goToPrevious}>
+        <TouchableOpacity style={styles.navButton} onPress={goToPreviousWord}>
           <Text style={styles.navButtonText}>{"<"}</Text>
         </TouchableOpacity>
         <Text style={styles.navText}>
-          {currentNumber + 1}/{viewWords.length}
+          {currentWordIndex + 1}/{viewWords.length}
         </Text>
-        <TouchableOpacity style={styles.navButton} onPress={goToNext}>
+        <TouchableOpacity style={styles.navButton} onPress={goToNextWord}>
           <Text style={styles.navButtonText}>{">"}</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.optionsContainer}>
-        {currentWordData.options.map((option, idx) => {
-          const isSelected = currentAnswerData === option;
-          const isCorrectOption = option === correctAnswer;
-          const isCorrectSelected = isSelected && isCorrect;
+        {currentWord.options.map((option, index) => {
+          const isSelected = userAnswer === option;
+          const isCorrectOption = option === currentWord.answer[0];
 
-          let borderColor = "#A4A4A4"; // 기본 테두리 색상
-          let borderWidth = 1; // 기본 테두리 두께
-          let textColor = "black"; // 기본 텍스트 색상
-          let iconName = isSelected
-            ? isCorrect
-              ? "check-circle"
-              : "times-circle"
-            : null;
-          let iconColor = isCorrectSelected ? "green" : "red";
+          let buttonStyle = styles.button;
 
-          if (isCorrectSelected) {
-            borderColor = "green";
-            borderWidth = 3;
-            textColor = "green";
-          } else if (isSelected && !isCorrect) {
-            borderColor = "red";
-            borderWidth = 3;
-            textColor = "red";
-          } else if (!isSelected && isCorrectOption) {
-            borderColor = "green";
-            borderWidth = 3;
-            textColor = "green";
+          // 올바른 정답에 대해서는 항상 초록색 테두리
+          if (isCorrectOption) {
+            buttonStyle = {
+              ...styles.button,
+              borderColor: "green",
+              borderWidth: 3,
+            };
+          }
+
+          // 사용자가 선택한 답변에 대한 처리
+          if (isSelected) {
+            if (isCorrectOption) {
+              // 정답을 선택한 경우: 초록색 테두리와 체크 아이콘
+              buttonStyle = {
+                ...styles.button,
+                borderColor: "green",
+                borderWidth: 3,
+              };
+              // } else {
+              //   // 잘못된 답변을 선택한 경우: 빨간색 테두리와 'X' 아이콘
+              //   buttonStyle = {
+              //     ...styles.button,
+              //     borderColor: "red",
+              //     borderWidth: 3,
+              //   };
+            }
           }
 
           return (
-            <TouchableOpacity
-              key={idx}
-              style={[styles.button, { borderColor, borderWidth }]}
-              disabled={true} // 옵션을 선택할 수 없도록 비활성화
-            >
-              <Text style={[styles.buttonText, { color: textColor }]}>
-                {option}
-              </Text>
-              {iconName && (
-                <Icon
-                  name={iconName}
+            <TouchableOpacity key={index} style={buttonStyle} disabled={true}>
+              <Text style={styles.buttonText}>{option}</Text>
+              {isSelected && (
+                <FontAwesome
+                  name={isCorrectOption ? "check-circle" : "times-circle"}
                   size={40}
-                  color={iconColor}
-                  style={styles.checkIcon}
+                  color={isCorrectOption ? "green" : "red"}
+                  style={styles.iconStyle}
                 />
               )}
             </TouchableOpacity>
@@ -101,7 +94,7 @@ const ReviewTestAnswerPage = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-  checkIcon: {
+  iconStyle: {
     position: "absolute",
     right: 15,
     justifyContent: "center",
