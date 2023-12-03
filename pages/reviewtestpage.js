@@ -71,7 +71,7 @@ const ReviewTestPage = () => {
   useEffect(() => {
     const fetchWordList = async () => {
       try {
-        const jsonValue = await AsyncStorage.getItem("wordList");
+        const jsonValue = await AsyncStorage.getItem("selectedWords");
         let storedWordList = jsonValue ? JSON.parse(jsonValue) : [];
         const today = new Date().toISOString().split("T")[0];
 
