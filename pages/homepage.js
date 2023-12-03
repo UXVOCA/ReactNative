@@ -4,58 +4,136 @@ import { Calendar } from "react-native-calendars";
 import Attendance from "../components/Attendance";
 import { attendContext } from "../store/attendContext";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 
-
+const getWrongWordCount = async () => {
+  try {
+    const totalWrongCountString = await AsyncStorage.getItem("totalWrongCount");
+    if (totalWrongCountString !== null) {
+      return JSON.parse(totalWrongCountString);
+    }
+  } catch (error) {
+    console.error("Error reading totalWrongCount from AsyncStorage", error);
+    return 0; // 또는 적절한 에러 처리
+  }
+};
 function HomePage() {
   const { attendData } = useContext(attendContext);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [attendanceStreak, setAttendanceStreak] = useState(0);
+  //정민아!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 여기가 틀린 단어 테스트 개수야. 그냥 wrongWordCount를 쓰면 돼!!!!
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchWrongWordCount = async () => {
+        const wrongWordCount = await getWrongWordCount();
+        console.log("총 틀린 단어 수:", wrongWordCount);
+      };
+
+      fetchWrongWordCount();
+    }, [])
+  );
+  //정민아!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!여기가 오늘의 단어 맞춘 총 개수임. correctAnswersCount 쓰면 돼
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchCorrectAnswersCount = async () => {
+        try {
+          const correctAnswersCountString = await AsyncStorage.getItem(
+            "correctAnswersCount"
+          );
+          const correctAnswersCount = correctAnswersCountString
+            ? JSON.parse(correctAnswersCountString)
+            : 0;
+          console.log(
+            "오늘의 단어 테스트 맞춘 총 문제 수:",
+            correctAnswersCount
+          );
+        } catch (error) {
+          console.error(
+            "AsyncStorage에서 정답 맞춘 횟수를 불러오는 중 오류 발생:",
+            error
+          );
+        }
+      };
+
+      fetchCorrectAnswersCount();
+    }, [])
+  );
+  //정민아!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 여기가 복습단어 테스트 결과야!
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchReviewedWordsData = async () => {
+        try {
+          const totalReviewedWordsCountString = await AsyncStorage.getItem(
+            "totalReviewedWordsCount"
+          );
+          const correctReviewedWordsCountString = await AsyncStorage.getItem(
+            "correctReviewedWordsCount"
+          );
+
+          const totalReviewedWordsCount = totalReviewedWordsCountString
+            ? JSON.parse(totalReviewedWordsCountString)
+            : 0;
+          const correctReviewedWordsCount = correctReviewedWordsCountString
+            ? JSON.parse(correctReviewedWordsCountString)
+            : 0;
+
+          console.log("전체 복습 단어 개수:", totalReviewedWordsCount);
+          console.log("맞은 복습 단어 개수:", correctReviewedWordsCount);
+        } catch (error) {
+          console.error(
+            "AsyncStorage에서 복습 단어 데이터를 불러오는 중 오류 발생:",
+            error
+          );
+        }
+      };
+
+      fetchReviewedWordsData();
+    }, [])
+  );
 
   const navigation = useNavigation();
 
   //날짜 바뀌었는지 확인
   const checkAndUpdate = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0]; // 현재 날짜 (YYYY-MM-DD)
-      const lastVisitDate = await AsyncStorage.getItem('lastVisitDate');
+      const today = new Date().toISOString().split("T")[0]; // 현재 날짜 (YYYY-MM-DD)
+      const lastVisitDate = await AsyncStorage.getItem("lastVisitDate");
 
-      console.log("최종방문일 : ",lastVisitDate);
+      console.log("최종방문일 : ", lastVisitDate);
       console.log("오늘: ", today);
       if (lastVisitDate !== today) {
         await updateWordList(); // 필요한 갱신 작업 수행
-        await AsyncStorage.setItem('lastVisitDate', today); // 오늘 날짜로 갱신
+        await AsyncStorage.setItem("lastVisitDate", today); // 오늘 날짜로 갱신
       }
     } catch (e) {
-      console.error('Error checking last visit date:', e);
+      console.error("Error checking last visit date:", e);
     }
   };
-  
+
   // 앱 시작 시 호출
   checkAndUpdate();
 
   //바뀌었으면 learncount와 todaytested갱신
   const updateWordList = async () => {
     try {
-      const jsonValue = await AsyncStorage.getItem('wordList');
+      const jsonValue = await AsyncStorage.getItem("wordList");
       let wordList = jsonValue != null ? JSON.parse(jsonValue) : [];
-  
+
       // 단어 목록 업데이트
-      const updatedWordList = wordList.map(word => ({
+      const updatedWordList = wordList.map((word) => ({
         ...word,
         learncount: word.todaytested ? word.learncount + 1 : word.learncount,
-        todaytested: false
+        todaytested: false,
       }));
-  
+
       // 업데이트된 목록 저장
-      await AsyncStorage.setItem('wordList', JSON.stringify(updatedWordList));
+      await AsyncStorage.setItem("wordList", JSON.stringify(updatedWordList));
     } catch (e) {
-      console.error('Failed to update wordList:', e);
+      console.error("Failed to update wordList:", e);
     }
   };
-
-
 
   const handleMonthChange = (month) => {
     setCurrentYear(month.year);
