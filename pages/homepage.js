@@ -18,23 +18,32 @@ const getWrongWordCount = async () => {
     return 0; // 또는 적절한 에러 처리
   }
 };
+
 function HomePage() {
-  const { attendData } = useContext(attendContext);
+  const { attendData, setAttendData } = useContext(attendContext);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [attendanceStreak, setAttendanceStreak] = useState(0);
-  //정민아!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 여기가 틀린 단어 테스트 개수야. 그냥 wrongWordCount를 쓰면 돼!!!!
+
+  const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
+  const [correctReviewedWordsCount, setCorrectReviewedWordsCount] = useState(0);
+  const [totalReviewedWordsCount, setTotalReviewedWordsCount] = useState(0);
+  const [wrongWordCount, setWrongWordCount] = useState(0);
+
+  //틀린 단어 테스트 개수야. 그냥 wrongWordCount를 쓰면 돼!!!!
   useFocusEffect(
     React.useCallback(() => {
       const fetchWrongWordCount = async () => {
         const wrongWordCount = await getWrongWordCount();
+        setWrongWordCount(wrongWordCount);
         console.log("총 틀린 단어 수:", wrongWordCount);
       };
 
       fetchWrongWordCount();
     }, [])
   );
-  //정민아!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!여기가 오늘의 단어 맞춘 총 개수임. correctAnswersCount 쓰면 돼
+
+  //여기가 오늘의 단어 맞춘 총 개수임. correctAnswersCount 쓰면 돼
   useFocusEffect(
     React.useCallback(() => {
       const fetchCorrectAnswersCount = async () => {
@@ -45,6 +54,8 @@ function HomePage() {
           const correctAnswersCount = correctAnswersCountString
             ? JSON.parse(correctAnswersCountString)
             : 0;
+
+          setCorrectAnswersCount(correctAnswersCount);
           console.log(
             "오늘의 단어 테스트 맞춘 총 문제 수:",
             correctAnswersCount
@@ -60,7 +71,8 @@ function HomePage() {
       fetchCorrectAnswersCount();
     }, [])
   );
-  //정민아!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 여기가 복습단어 테스트 결과야!
+
+  //여기가 복습단어 테스트 결과야!
   useFocusEffect(
     React.useCallback(() => {
       const fetchReviewedWordsData = async () => {
@@ -79,6 +91,8 @@ function HomePage() {
             ? JSON.parse(correctReviewedWordsCountString)
             : 0;
 
+          setTotalReviewedWordsCount(totalReviewedWordsCount);
+          setCorrectReviewedWordsCount(correctReviewedWordsCount);
           console.log("전체 복습 단어 개수:", totalReviewedWordsCount);
           console.log("맞은 복습 단어 개수:", correctReviewedWordsCount);
         } catch (error) {
@@ -94,46 +108,6 @@ function HomePage() {
   );
 
   const navigation = useNavigation();
-
-  //날짜 바뀌었는지 확인
-  const checkAndUpdate = async () => {
-    try {
-      const today = new Date().toISOString().split("T")[0]; // 현재 날짜 (YYYY-MM-DD)
-      const lastVisitDate = await AsyncStorage.getItem("lastVisitDate");
-
-      console.log("최종방문일 : ", lastVisitDate);
-      console.log("오늘: ", today);
-      if (lastVisitDate !== today) {
-        await updateWordList(); // 필요한 갱신 작업 수행
-        await AsyncStorage.setItem("lastVisitDate", today); // 오늘 날짜로 갱신
-      }
-    } catch (e) {
-      console.error("Error checking last visit date:", e);
-    }
-  };
-
-  // 앱 시작 시 호출
-  checkAndUpdate();
-
-  //바뀌었으면 learncount와 todaytested갱신
-  const updateWordList = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem("wordList");
-      let wordList = jsonValue != null ? JSON.parse(jsonValue) : [];
-
-      // 단어 목록 업데이트
-      const updatedWordList = wordList.map((word) => ({
-        ...word,
-        learncount: word.todaytested ? word.learncount + 1 : word.learncount,
-        todaytested: false,
-      }));
-
-      // 업데이트된 목록 저장
-      await AsyncStorage.setItem("wordList", JSON.stringify(updatedWordList));
-    } catch (e) {
-      console.error("Failed to update wordList:", e);
-    }
-  };
 
   const handleMonthChange = (month) => {
     setCurrentYear(month.year);
@@ -184,6 +158,45 @@ function HomePage() {
     const streak = calculateStreak(attendData);
     setAttendanceStreak(streak);
   }, [attendData]);
+
+  useEffect(() => {
+    const updateAttendance = async () => {
+      try {
+        const attendData = await AsyncStorage.getItem("selectedWords");
+        const data = attendData ? JSON.parse(attendData) : [];
+
+        // 오늘의 날짜 가져오기
+        const today = new Date().toISOString().split("T")[0];
+
+        // todayTested가 true인 항목이 하나라도 있는지 확인
+        const hasTestedToday = data.some((word) => word.todaytested);
+
+        // 출석 업데이트
+        if (hasTestedToday) {
+          setAttendData((prevData) => ({
+            ...prevData,
+            [today]: {
+              marked: true,
+              dotColor: "#7794FF",
+              todaytestresult: correctAnswersCount,
+              reviewtestresult: correctReviewedWordsCount,
+              wrongcount: wrongWordCount,
+              totalReviewCount: totalReviewedWordsCount, // 변수 이름 수정
+            },
+          }));
+        }
+      } catch (error) {
+        console.error("Error updating attendance", error);
+      }
+    };
+
+    updateAttendance();
+  }, [
+    correctAnswersCount,
+    correctReviewedWordsCount,
+    totalReviewedWordsCount,
+    wrongWordCount,
+  ]);
 
   return (
     <View style={styles.container}>
