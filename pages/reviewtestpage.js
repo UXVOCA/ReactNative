@@ -71,7 +71,7 @@ const ReviewTestPage = () => {
   useEffect(() => {
     const fetchWordList = async () => {
       try {
-        const jsonValue = await AsyncStorage.getItem("wordList");
+        const jsonValue = await AsyncStorage.getItem("selectedWords");
         let storedWordList = jsonValue ? JSON.parse(jsonValue) : [];
         const today = new Date().toISOString().split("T")[0];
 
@@ -81,7 +81,7 @@ const ReviewTestPage = () => {
           const differenceInDays = Math.ceil(
             (new Date(today) - new Date(learnDateOnly)) / (1000 * 3600 * 24)
           );
-          return [0, 5, 7, 15].includes(differenceInDays);
+          return [1, 5, 7, 15].includes(differenceInDays);
         });
 
         // 올바른 답과 잘못된 보기를 혼합하여 options 배열 생성
