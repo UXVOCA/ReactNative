@@ -20,7 +20,7 @@ const getWrongWordCount = async () => {
 };
 
 function HomePage() {
-  const { attendData, setAttendData } = useContext(attendContext);
+  const { attendData, updateAttendance } = useContext(attendContext);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [attendanceStreak, setAttendanceStreak] = useState(0);
@@ -159,43 +159,43 @@ function HomePage() {
     setAttendanceStreak(streak);
   }, [attendData]);
 
+  // 출석체크 로직
   useEffect(() => {
-    const updateAttendance = async () => {
+    (async () => {
       try {
-        const attendData = await AsyncStorage.getItem("selectedWords");
-        const data = attendData ? JSON.parse(attendData) : [];
+        const selectedWordsString = await AsyncStorage.getItem("selectedWords");
+        const selectedWords = selectedWordsString
+          ? JSON.parse(selectedWordsString)
+          : [];
 
-        // 오늘의 날짜 가져오기
         const today = new Date().toISOString().split("T")[0];
 
-        // todayTested가 true인 항목이 하나라도 있는지 확인
-        const hasTestedToday = data.some((word) => word.todaytested);
+        const hasTestedToday = selectedWords.some((word) => word.todaytested);
 
-        // 출석 업데이트
         if (hasTestedToday) {
-          setAttendData((prevData) => ({
-            ...prevData,
+          const newAttendanceData = {
             [today]: {
               marked: true,
               dotColor: "#7794FF",
               todaytestresult: correctAnswersCount,
               reviewtestresult: correctReviewedWordsCount,
               wrongcount: wrongWordCount,
-              totalReviewCount: totalReviewedWordsCount, // 변수 이름 수정
+              totalReviewCount: totalReviewedWordsCount,
             },
-          }));
+          };
+
+          await updateAttendance(newAttendanceData);
         }
       } catch (error) {
         console.error("Error updating attendance", error);
       }
-    };
-
-    updateAttendance();
+    })();
   }, [
     correctAnswersCount,
     correctReviewedWordsCount,
     totalReviewedWordsCount,
     wrongWordCount,
+    updateAttendance,
   ]);
 
   return (
