@@ -28,7 +28,7 @@ function HomePage() {
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [correctReviewedWordsCount, setCorrectReviewedWordsCount] = useState(0);
   const [totalReviewedWordsCount, setTotalReviewedWordsCount] = useState(0);
-  const [wrongWordCount, setWrongWordCount] = useState(0);
+  const [wrongWordCount, setWrongWordCount] = useState();
 
   //틀린 단어 테스트 개수야. 그냥 wrongWordCount를 쓰면 돼!!!!
   useFocusEffect(
@@ -168,13 +168,17 @@ function HomePage() {
           ? JSON.parse(selectedWordsString)
           : [];
 
-        const today = new Date().toISOString().split("T")[0];
+        const today = new Date();
+        const offset = today.getTimezoneOffset() * 60000; // 시간대 오프셋을 밀리초 단위로 변환
+        const localISOTime = new Date(today - offset)
+          .toISOString()
+          .split("T")[0];
+        console.log(localISOTime); // 로컬 날짜 출력
 
         const hasTestedToday = selectedWords.some((word) => word.todaytested);
-
         if (hasTestedToday) {
           const newAttendanceData = {
-            [today]: {
+            [localISOTime]: {
               marked: true,
               dotColor: "#7794FF",
               todaytestresult: correctAnswersCount,
@@ -184,13 +188,19 @@ function HomePage() {
             },
           };
 
+          console.log(newAttendanceData);
           await updateAttendance(newAttendanceData);
         }
       } catch (error) {
         console.error("Error updating attendance", error);
       }
     })();
-  }, []);
+  }, [
+    correctAnswersCount,
+    correctReviewedWordsCount,
+    totalReviewedWordsCount,
+    wrongWordCount,
+  ]);
 
   return (
     <View style={styles.container}>

@@ -34,7 +34,7 @@ const initialMarkedDates = {
     todaytestresult: 30,
     reviewtestresult: 28,
     wrongcount: 2,
-    totalReviewCount: 20,
+    totalReviewCount: 30,
   },
 };
 
