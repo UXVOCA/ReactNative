@@ -96,69 +96,76 @@ const TodayTestPage = () => {
 
     loadWrongVocab();
   }, []);
-
-  useEffect(() => {
-    const loadAndUpdateAllVocabData = async () => {
-      try {
-        // learncountData, selectedWordsData, wrongVocabData 불러오기
-        const [storedLearncountData, storedSelectedWords, storedWrongVocab] =
-          await Promise.all([
-            AsyncStorage.getItem("learncountData"),
-            AsyncStorage.getItem("selectedWords"),
-            AsyncStorage.getItem("wrongVocab"),
-          ]);
-
-        let learncountData = storedLearncountData
-          ? JSON.parse(storedLearncountData)
-          : {};
-        let selectedWordsData = storedSelectedWords
-          ? JSON.parse(storedSelectedWords)
-          : [];
-        let wrongVocabData = storedWrongVocab
-          ? JSON.parse(storedWrongVocab)
-          : [];
-
-        let allWordsData = wordList.map((word) => {
-          const selectedWordData = selectedWordsData.find(
-            (sw) => sw.word === word.word
-          );
-          return {
-            ...word,
-            todaytested: selectedWordData?.todaytested || false,
-            wrongcount:
-              wrongVocabData.find((wv) => wv.word === word.word)?.wrongcount ||
-              0,
-            learncount: learncountData[word.word] || 0,
-            learneddate: selectedWordData?.learneddate || null, // learneddate 추가
-          };
-        });
-
-        console.log(
-          "vocab.js의 모든 단어들의 데이터 (업데이트 포함):",
-          allWordsData
-        );
-      } catch (error) {
-        console.error("데이터를 불러오는 데 실패했습니다.", error);
+  const printWordListData = async () => {
+    try {
+      const wordListData = await AsyncStorage.getItem("wordList");
+      if (wordListData !== null) {
+        const parsedData = JSON.parse(wordListData);
+        console.log("wordList 데이터:", parsedData);
+      } else {
+        console.log("wordList 데이터가 존재하지 않습니다.");
       }
-    };
+    } catch (error) {
+      console.error("wordList 데이터를 불러오는 데 실패했습니다:", error);
+    }
+  };
 
-    loadAndUpdateAllVocabData();
-  }, []);
+  // 함수 호출
+
+  const loadAndUpdateAllVocabData = async () => {
+    try {
+      // AsyncStorage에서 wordList, learncountData, selectedWords, wrongVocab 불러오기
+      const [
+        storedWordList,
+        storedLearncountData,
+        storedSelectedWords,
+        storedWrongVocab,
+      ] = await Promise.all([
+        AsyncStorage.getItem("wordList"),
+        AsyncStorage.getItem("learncountData"),
+        AsyncStorage.getItem("selectedWords"),
+        AsyncStorage.getItem("wrongVocab"),
+      ]);
+
+      // wordList 파싱 (AsyncStorage에 있는 경우만 업데이트)
+      let allWordsData = storedWordList ? JSON.parse(storedWordList) : wordList;
+
+      // learncountData, selectedWordsData, wrongVocabData 파싱
+      let learncountData = storedLearncountData
+        ? JSON.parse(storedLearncountData)
+        : {};
+      let selectedWordsData = storedSelectedWords
+        ? JSON.parse(storedSelectedWords)
+        : [];
+      let wrongVocabData = storedWrongVocab ? JSON.parse(storedWrongVocab) : [];
+
+      // allWordsData 업데이트
+      allWordsData = allWordsData.map((word) => {
+        const selectedWordData = selectedWordsData.find(
+          (sw) => sw.word === word.word
+        );
+        return {
+          ...word,
+          todaytested: selectedWordData?.todaytested || false,
+          wrongcount:
+            wrongVocabData.find((wv) => wv.word === word.word)?.wrongcount || 0,
+          learncount: learncountData[word.word] || 0,
+          learneddate: selectedWordData?.learneddate || null,
+        };
+      });
+
+      // 업데이트된 allWordsData를 다시 AsyncStorage에 저장
+      await AsyncStorage.setItem("wordList", JSON.stringify(allWordsData));
+    } catch (error) {
+      console.error("데이터를 불러오는 데 실패했습니다.", error);
+    }
+  };
+
   const updateLearnCountForSelectedWords = async (words) => {
     const storedLearncountData = await AsyncStorage.getItem("learncountData");
     let learncountData = storedLearncountData
       ? JSON.parse(storedLearncountData)
       : {};
-
-    words.forEach((word) => {
-      if (!word.todaytested) {
-        if (learncountData[word.word]) {
-          learncountData[word.word] += 1;
-        } else {
-          learncountData[word.word] = 1;
-        }
-      }
-    });
 
     await AsyncStorage.setItem(
       "learncountData",
@@ -316,14 +323,14 @@ const TodayTestPage = () => {
     }
     // 테스트의 다음 문제로 이동
     if (currentNumber === selectedWords.length - 1) {
-      // 마지막 단어에 대한 답변 후에 updateTodayTested 호출
-      setTimeout(() => {
-        updateTodayTested(newUserAnswers);
-        navigation.navigate("TodayTestAnswer", {
-          userAnswers: newUserAnswers,
-          selectedWords: selectedWords,
-        });
-      }, 0);
+      await updateTodayTested(newUserAnswers);
+      await loadAndUpdateAllVocabData();
+
+      navigation.navigate("TodayTestAnswer", {
+        userAnswers: newUserAnswers,
+        selectedWords: selectedWords,
+      });
+      printWordListData();
     } else {
       setCurrentNumber(currentNumber + 1);
     }

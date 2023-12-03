@@ -1,15 +1,109 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Button, StyleSheet } from 'react-native';
 import wordList from "../vocab/vocab";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TodayNewListPage = () => {
-    const [selectedWords, setSelectedWords] = useState([]);
-    const [topWords, setTopWords] = useState([]);
+    const [selectedWords, setSelectedWords] = useState([]); //단어빨간색 처리하는
+    const [viewWords, setViewWords] = useState([]); //무슨단어보여줄지
+
+    //vocab.js를 storage에 저장하는 함수
+    // const storeWordList = async (wordList) => {
+    //     try {
+    //       const jsonValue = JSON.stringify(wordList);
+    //       await AsyncStorage.setItem('wordList', jsonValue);
+    //     } catch (e) {
+    //       // 저장 중 에러 처리
+    //     }
+    //   };
+
+    //   // wordList 저장
+    // storeWordList(wordList);
+
+    const logWordList = async () => {
+        try {
+          const storedWordList = await AsyncStorage.getItem('wordList');
+          if (storedWordList !== null) {
+            // 값이 존재하면 로그로 출력
+            console.log('wordList:', JSON.parse(storedWordList));
+          } else {
+            console.log('wordList not found');
+          }
+        } catch (e) {
+          // 에러 처리
+          console.error('Failed to fetch wordList:', e);
+        }
+      };
+      
+      // 함수 호출
+      logWordList();
+
+    // const getSortedWordList = async () => {
+    //     try {
+    //       const jsonValue = await AsyncStorage.getItem('wordList');
+    //       let wordList = jsonValue != null ? JSON.parse(jsonValue) : [];
+
+    //       // learncount 기준으로 정렬
+    //       wordList.sort((a, b) => a.learncount - b.learncount);
+
+    //       // 상위 30개 항목 추출
+    //       return wordList.slice(0, 30);
+    //     } catch (e) {
+    //       // 검색 중 에러 처리
+    //       return []; // 에러가 발생한 경우 빈 배열 반환
+    //     }
+    // };
+
+
+    // // 사용 예시
+    // const top30Words = await getSortedWordList();
+    // setSelectedWords(top30Words);
+
 
     useEffect(() => {
-        const sortedWords = [...wordList].sort((a, b) => a.learncount - b.learncount);
-        setTopWords(sortedWords.slice(0, 5));
+        const fetchWordList = async () => {
+            try {
+                const jsonValue = await AsyncStorage.getItem('wordList');
+                let storedWordList = jsonValue != null ? JSON.parse(jsonValue) : [];
+                storedWordList.sort((a, b) => a.learncount - b.learncount);
+                setViewWords(storedWordList.slice(0, 30));
+            } catch (e) {
+                // 에러 처리
+            }
+        };
+
+        fetchWordList();
     }, []);
+
+
+    // const updateWordData = async () => {
+    //     try {
+    //         const jsonValue = await AsyncStorage.getItem('wordList');
+    //         let wordList = jsonValue != null ? JSON.parse(jsonValue) : [];
+
+    //         // "demonstrate" 단어 찾아 데이터 업데이트
+    //         const updatedWordList = wordList.map(word => {
+    //             if (word.word === 'demonstrate') {
+    //                 return {
+    //                     ...word,
+    //                     learncount: word.learncount + 1,
+    //                     learneddate: "2023-12-02", // 오늘 날짜로 설정
+    //                 };
+    //             }
+    //             return word;
+    //         });
+
+    //         // 수정된 wordList 저장
+    //         const updatedJsonValue = JSON.stringify(updatedWordList);
+    //         await AsyncStorage.setItem('wordList', updatedJsonValue);
+    //     } catch (e) {
+    //         // 에러 처리
+    //     }
+    // };
+
+    // 함수 호출
+    // updateWordData();
+
 
     // 단어 선택 토글 함수
     const toggleWordSelection = index => {
@@ -24,6 +118,7 @@ const TodayNewListPage = () => {
     const resetSelections = () => {
         setSelectedWords([]);
     };
+
 
 
     return (
@@ -42,7 +137,7 @@ const TodayNewListPage = () => {
 
             {/* 단어 리스트 */}
             {/* <ScrollView style={styles.wordlist}>
-                {topWords.map((item, index) => (
+                {viewWords.map((item, index) => (
                     <TouchableOpacity
                         key={index}
                         style={[
@@ -66,7 +161,7 @@ const TodayNewListPage = () => {
             </ScrollView> */}
             {/* 단어 리스트 */}
             <ScrollView style={styles.wordlist}>
-                {topWords.map((item, index) => (
+                {viewWords.map((item, index) => (
                     <TouchableOpacity
                         key={index}
                         style={[

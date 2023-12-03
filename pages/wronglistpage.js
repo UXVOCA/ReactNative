@@ -1,22 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Button, StyleSheet } from 'react-native';
 import wordList from "../vocab/vocab";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WrongListPage = () => {
   const [selectedWords, setSelectedWords] = useState([]);
-  const [topWords, setTopWords] = useState([]);
+  const [viewWords, setViewWords] = useState([]);
 
   // useEffect(() => {
   //     const sortedWords = [...wordList].sort((a, b) => a.learncount - b.learncount);
-  //     setTopWords(sortedWords.slice(0, 5));
+  //     setViewWords(sortedWords.slice(0, 5));
   // }, []);
 
   //틀린 단어 리스트 생성
   useEffect(() => {
-    const filteredAndSortedWords = wordList
-      .filter(word => word.wrongcount >= 1) // wrongcount가 1 이상인 단어만 필터링
-      .sort((a, b) => b.wrongcount - a.wrongcount); // wrongcount 기준으로 내림차순 정렬
-    setTopWords(filteredAndSortedWords); // 상위 5개 단어 설정
+    const fetchAndSortWords = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem('wordList');
+        let storedWordList = jsonValue != null ? JSON.parse(jsonValue) : [];
+
+        const filteredAndSortedWords = storedWordList
+          .filter(word => word.wrongcount >= 1) // wrongcount가 1 이상인 단어만 필터링
+          .sort((a, b) => b.wrongcount - a.wrongcount); // wrongcount 기준으로 내림차순 정렬
+
+        setViewWords(filteredAndSortedWords);
+      } catch (e) {
+        console.error('Failed to fetch wordList:', e);
+      }
+    };
+
+    fetchAndSortWords();
   }, []);
 
 
@@ -61,7 +74,7 @@ const WrongListPage = () => {
 
       {/* 단어 리스트 */}
       <ScrollView style={styles.wordlist}>
-        {topWords.map((item, index) => (
+        {viewWords.map((item, index) => (
           <TouchableOpacity
             key={index}
             style={[
