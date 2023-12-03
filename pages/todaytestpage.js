@@ -48,6 +48,8 @@ const TodayTestPage = () => {
       );
     }
   };
+
+
   const handleAppStateChange = (nextAppState) => {
     if (nextAppState === "active") {
       const now = new Date();

@@ -492,17 +492,17 @@ const wordList = [
   },
   // 추가 단어들...
 ];
-const storeData = async (value) => {
-  try {
-    const jsonValue = JSON.stringify(value);
-    await AsyncStorage.setItem("wordList", jsonValue);
-  } catch (e) {
-    // 저장 에러
-    console.error("Error saving data", e);
-  }
-};
+// const storeData = async (value) => {
+//   try {
+//     const jsonValue = JSON.stringify(value);
+//     await AsyncStorage.setItem("wordList", jsonValue);
+//   } catch (e) {
+//     // 저장 에러
+//     console.error("Error saving data", e);
+//   }
+// };
 
-// vocab.js의 데이터를 저장
-storeData(wordList);
+// // vocab.js의 데이터를 저장
+// storeData(wordList);
 
 export default wordList;

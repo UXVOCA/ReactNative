@@ -7,7 +7,7 @@ const TodayNewListPage = () => {
     const [selectedWords, setSelectedWords] = useState([]); //단어빨간색 처리하는
     const [viewWords, setViewWords] = useState([]); //무슨단어보여줄지
 
-    //vocab.js를 storage에 저장하는 함수
+    // vocab.js를 storage에 저장하는 함수
     // const storeWordList = async (wordList) => {
     //     try {
     //       const jsonValue = JSON.stringify(wordList);
@@ -20,23 +20,23 @@ const TodayNewListPage = () => {
     //   // wordList 저장
     // storeWordList(wordList);
 
-    // const logWordList = async () => {
-    //     try {
-    //       const storedWordList = await AsyncStorage.getItem('wordList');
-    //       if (storedWordList !== null) {
-    //         // 값이 존재하면 로그로 출력
-    //         console.log('wordList:', JSON.parse(storedWordList));
-    //       } else {
-    //         console.log('wordList not found');
-    //       }
-    //     } catch (e) {
-    //       // 에러 처리
-    //       console.error('Failed to fetch wordList:', e);
-    //     }
-    //   };
+    const logWordList = async () => {
+        try {
+          const storedWordList = await AsyncStorage.getItem('wordList');
+          if (storedWordList !== null) {
+            // 값이 존재하면 로그로 출력
+            console.log('wordList:', JSON.parse(storedWordList));
+          } else {
+            console.log('wordList not found');
+          }
+        } catch (e) {
+          // 에러 처리
+          console.error('Failed to fetch wordList:', e);
+        }
+      };
       
-    //   // 함수 호출
-    //   logWordList();
+      // 함수 호출
+      logWordList();
 
     // const getSortedWordList = async () => {
     //     try {
