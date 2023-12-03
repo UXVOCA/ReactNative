@@ -16,6 +16,7 @@ import WrongListPage from "./pages/wronglistpage.js";
 import WrongPage from "./pages/wrongpage.js";
 import { AttendProvider } from "./store/attendContext.js";
 import SummaryPage from "./pages/summarypage.js";
+import ReviewTestAnswerPage from "./pages/reviewtestanswerpage.js";
 
 const Stack = createNativeStackNavigator();
 function App() {
@@ -73,6 +74,18 @@ function App() {
                 <CustomHeader
                   navigation={navigation}
                   title="복습 단어 테스트"
+                />
+              ),
+            })}
+          />
+          <Stack.Screen
+            name="ReviewTestAnswerPage"
+            component={ReviewTestAnswerPage}
+            options={({ navigation }) => ({
+              header: () => (
+                <CustomHeader
+                  navigation={navigation}
+                  title="복습 단어 테스트 결과"
                 />
               ),
             })}

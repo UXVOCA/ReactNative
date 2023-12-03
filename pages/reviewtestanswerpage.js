@@ -3,15 +3,17 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const TodayTestAnswerPage = ({ route }) => {
-  const { userAnswers, selectedWords } = route.params;
+const ReviewTestAnswerPage = ({ route }) => {
+  const { userAnswers, viewWords } = route.params;
   const [currentNumber, setCurrentNumber] = useState(0);
-  console.log(userAnswers);
-  const currentWordData = selectedWords[currentNumber];
-  const currentAnswerData = userAnswers[currentNumber];
+  const currentWordData = viewWords[currentNumber];
+  const currentAnswerData = userAnswers[currentWordData.word];
 
-  const correctAnswer = currentWordData.answer[0]; // 정답은 answer 배열의 첫 번째 요소입니다.
-  const isCorrect = currentAnswerData.selected === correctAnswer;
+  const correctAnswer =
+    currentWordData.answer && currentWordData.answer.length > 0
+      ? currentWordData.answer[0]
+      : null;
+  const isCorrect = currentAnswerData === correctAnswer;
 
   const goToPrevious = () => {
     if (currentNumber > 0) {
@@ -20,7 +22,7 @@ const TodayTestAnswerPage = ({ route }) => {
   };
 
   const goToNext = () => {
-    if (currentNumber < selectedWords.length - 1) {
+    if (currentNumber < viewWords.length - 1) {
       setCurrentNumber(currentNumber + 1);
     }
   };
@@ -30,14 +32,14 @@ const TodayTestAnswerPage = ({ route }) => {
       <View
         style={[styles.card, { backgroundColor: isCorrect ? "green" : "red" }]}
       >
-        <Text style={styles.wordText}>{userAnswers[currentNumber].word}</Text>
+        <Text style={styles.wordText}>{currentWordData.word}</Text>
       </View>
       <View style={styles.navigation}>
         <TouchableOpacity style={styles.navButton} onPress={goToPrevious}>
           <Text style={styles.navButtonText}>{"<"}</Text>
         </TouchableOpacity>
         <Text style={styles.navText}>
-          {currentNumber + 1}/{userAnswers.length}
+          {currentNumber + 1}/{viewWords.length}
         </Text>
         <TouchableOpacity style={styles.navButton} onPress={goToNext}>
           <Text style={styles.navButtonText}>{">"}</Text>
@@ -45,7 +47,7 @@ const TodayTestAnswerPage = ({ route }) => {
       </View>
       <View style={styles.optionsContainer}>
         {currentWordData.options.map((option, idx) => {
-          const isSelected = currentAnswerData.selected === option;
+          const isSelected = currentAnswerData === option;
           const isCorrectOption = option === correctAnswer;
           const isCorrectSelected = isSelected && isCorrect;
 
@@ -107,7 +109,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    //justifyContent: "center",
     paddingTop: 50,
     backgroundColor: "white",
   },
@@ -131,17 +132,17 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   button: {
-    marginBottom: 40, // 버튼 사이의 간격
-    backgroundColor: "#AABCFD", // 버튼의 배경색
-    borderRadius: 20, // 버튼의 모서리 둥글기
+    marginBottom: 40,
+    backgroundColor: "#AABCFD",
+    borderRadius: 20,
     justifyContent: "center",
-    width: "75%", // 버튼의 너비
+    width: "75%",
     height: "20%",
-    elevation: 3, // 안드로이드에서 그림자 효과
-    shadowOpacity: 0.3, // iOS에서 그림자 효과
-    shadowRadius: 4, // iOS에서 그림자 둥근 효과
-    shadowColor: "#000", // iOS에서 그림자 색상
-    shadowOffset: { height: 2, width: 0 }, // iOS에서 그림자 방향
+    elevation: 3,
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    shadowColor: "#000",
+    shadowOffset: { height: 2, width: 0 },
     borderColor: "#A4A4A4",
     borderWidth: 1,
   },
@@ -168,4 +169,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TodayTestAnswerPage;
+export default ReviewTestAnswerPage;
