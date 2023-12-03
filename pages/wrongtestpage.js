@@ -8,6 +8,7 @@ import _ from "lodash";
 
 const WrongTestPage = () => {
   const navigation = useNavigation();
+  const [totalWrongCount, setTotalWrongCount] = useState(0);
   const [currentNumber, setCurrentNumber] = useState(0);
   const [wrongVocab, setWrongVocab] = useState([]);
   const [userAnswers, setUserAnswers] = useState([]);
@@ -41,6 +42,10 @@ const WrongTestPage = () => {
     ];
 
     setUserAnswers(newUserAnswers);
+    if (option !== selectedWord.answer[0]) {
+      // 틀린 경우
+      setTotalWrongCount(totalWrongCount + 1);
+    }
 
     if (option === correctAnswer) {
       // 정답인 경우
@@ -69,13 +74,24 @@ const WrongTestPage = () => {
     if (currentNumber < wrongVocab.length - 1) {
       setCurrentNumber(currentNumber + 1);
     } else {
+      await updateTotalWrongCount();
+
       navigation.navigate("WrongTestAnswerPage", {
         userAnswers: newUserAnswers, // 사용자가 푼 답변 데이터 전달
         selectedWords: wrongVocab, // 선택된 단어 목록 전달
       });
     }
   };
-
+  const updateTotalWrongCount = async () => {
+    try {
+      await AsyncStorage.setItem(
+        "totalWrongCount",
+        JSON.stringify(totalWrongCount)
+      );
+    } catch (error) {
+      console.error("총 틀린 횟수 저장 중 오류 발생:", error);
+    }
+  };
   // 이전 및 다음 버튼 핸들러 (todaytestpage.js에서 가져옴)
 
   const goToPrevious = () => {

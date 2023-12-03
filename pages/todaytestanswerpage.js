@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,7 +18,30 @@ const TodayTestAnswerPage = ({ route }) => {
       setCurrentNumber(currentNumber - 1);
     }
   };
+  useEffect(() => {
+    const correctAnswersCount = userAnswers.filter(
+      (answer) =>
+        answer.selected ===
+        selectedWords.find((word) => word.word === answer.word).answer[0]
+    ).length;
 
+    // 계산된 값을 AsyncStorage에 저장
+    const saveCorrectAnswersCount = async () => {
+      try {
+        await AsyncStorage.setItem(
+          "correctAnswersCount",
+          JSON.stringify(correctAnswersCount)
+        );
+      } catch (error) {
+        console.error(
+          "AsyncStorage에 정답 맞춘 횟수 저장 중 오류 발생:",
+          error
+        );
+      }
+    };
+
+    saveCorrectAnswersCount();
+  }, [userAnswers, selectedWords]);
   const goToNext = () => {
     if (currentNumber < selectedWords.length - 1) {
       setCurrentNumber(currentNumber + 1);

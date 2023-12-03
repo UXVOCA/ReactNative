@@ -151,6 +151,7 @@ const TodayTestPage = () => {
             wrongVocabData.find((wv) => wv.word === word.word)?.wrongcount || 0,
           learncount: learncountData[word.word] || 0,
           learneddate: selectedWordData?.learneddate || null,
+          wrongwordcount: wrongVocabData?.wrongwordcount || 0,
         };
       });
 

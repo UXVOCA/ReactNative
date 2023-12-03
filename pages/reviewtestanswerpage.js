@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ReviewTestAnswerPage = ({ route }) => {
   const { userAnswers, viewWords } = route.params;
@@ -20,6 +21,33 @@ const ReviewTestAnswerPage = ({ route }) => {
       setCurrentWordIndex(currentWordIndex + 1);
     }
   };
+  useEffect(() => {
+    const totalReviewedWordsCount = viewWords.length;
+    const correctAnswersCount = viewWords.filter(
+      (word) => userAnswers[word.word] === word.answer[0]
+    ).length;
+
+    // 계산된 값을 AsyncStorage에 저장
+    const saveReviewedWordsData = async () => {
+      try {
+        await AsyncStorage.setItem(
+          "totalReviewedWordsCount",
+          JSON.stringify(totalReviewedWordsCount)
+        );
+        await AsyncStorage.setItem(
+          "correctReviewedWordsCount",
+          JSON.stringify(correctAnswersCount)
+        );
+      } catch (error) {
+        console.error(
+          "AsyncStorage에 복습 단어 데이터 저장 중 오류 발생:",
+          error
+        );
+      }
+    };
+
+    saveReviewedWordsData();
+  }, [viewWords, userAnswers]);
 
   return (
     <View style={styles.container}>
