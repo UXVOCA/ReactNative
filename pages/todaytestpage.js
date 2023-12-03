@@ -127,10 +127,8 @@ const TodayTestPage = () => {
         AsyncStorage.getItem("wrongVocab"),
       ]);
 
-      // wordList 파싱 (AsyncStorage에 없으면 초기 wordList 사용)
-      let allWordsData = storedWordList
-        ? JSON.parse(storedWordList)
-        : [...wordList];
+      // wordList 파싱 (AsyncStorage에 있는 경우만 업데이트)
+      let allWordsData = storedWordList ? JSON.parse(storedWordList) : wordList;
 
       // learncountData, selectedWordsData, wrongVocabData 파싱
       let learncountData = storedLearncountData
@@ -152,7 +150,7 @@ const TodayTestPage = () => {
           wrongcount:
             wrongVocabData.find((wv) => wv.word === word.word)?.wrongcount || 0,
           learncount: learncountData[word.word] || 0,
-          learneddate: selectedWordData?.learneddate || null, // learneddate 추가
+          learneddate: selectedWordData?.learneddate || null,
         };
       });
 

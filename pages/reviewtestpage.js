@@ -125,13 +125,13 @@ const ReviewTestPage = () => {
       </View>
       <View style={styles.navigation}>
         <TouchableOpacity style={styles.navButton} onPress={handlePrevWord}>
-          <Text>〈</Text>
+          <Text style={styles.navButtonText}> {"<"} </Text>
         </TouchableOpacity>
         <Text style={styles.navText}>
           {currentWordIndex + 1}/{viewWords.length}
         </Text>
         <TouchableOpacity style={styles.navButton} onPress={handleNextWord}>
-          <Text>〉</Text>
+          <Text style={styles.navButtonText}>{">"}</Text>
         </TouchableOpacity>
       </View>
       {options.map((option, index) => (
@@ -156,6 +156,10 @@ const ReviewTestPage = () => {
 };
 
 const styles = StyleSheet.create({
+  navButtonText: {
+    fontSize: 30,
+    color: "black",
+  },
   checkIcon: {
     position: "absolute",
     right: 15,
@@ -188,12 +192,13 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   button: {
-    marginBottom: 40, // 버튼 사이의 간격
+    marginTop: 30,
+    marginBottom: 5, // 버튼 사이의 간격
     backgroundColor: "#AABCFD", // 버튼의 배경색
     borderRadius: 20, // 버튼의 모서리 둥글기
     justifyContent: "center",
     width: "75%", // 버튼의 너비
-    height: "20%",
+    height: "15%",
     elevation: 3, // 안드로이드에서 그림자 효과
     shadowOpacity: 0.3, // iOS에서 그림자 효과
     shadowRadius: 4, // iOS에서 그림자 둥근 효과
@@ -212,7 +217,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     width: "40%",
-    marginVertical: 20,
+    paddingTop: 30,
   },
   navButton: {},
   navText: {
