@@ -1,40 +1,149 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import _ from "lodash";
+import { useNavigation } from "@react-navigation/native";
 
 const ReviewTestPage = () => {
+  const navigation = useNavigation();
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [viewWords, setViewWords] = useState([]);
+  const [currentWord, setCurrentWord] = useState({});
+  const [optionsMap, setOptionsMap] = useState({});
+  const [options, setOptions] = useState([]);
+  const [userAnswers, setUserAnswers] = useState({});
+
+  const handleAnswer = (selectedOption) => {
+    setUserAnswers({
+      ...userAnswers,
+      [currentWord.word]: selectedOption,
+    });
+
+    if (currentWordIndex < viewWords.length - 1) {
+      setCurrentWordIndex(currentWordIndex + 1);
+    } else {
+      navigation.navigate("ReviewTestAnswerPage", { userAnswers }); // ReviewTestAnswerPage로 이동하면서 userAnswers 데이터 전달
+      // 로직 완료 시 처리
+    }
+  };
+
+  useEffect(() => {
+    if (currentWordIndex < viewWords.length) {
+      setCurrentWord(viewWords[currentWordIndex]);
+    } else {
+      setCurrentWord({});
+    }
+  }, [currentWordIndex, viewWords]);
+
+  useEffect(() => {
+    if (currentWord && currentWord.answer) {
+      if (!optionsMap[currentWord.word]) {
+        const correctAnswer = currentWord.answer[0];
+        const wrongOptions = _.sampleSize(
+          viewWords
+            .filter((w) => w.word !== currentWord.word)
+            .map((w) => w.answer[0]),
+          2
+        );
+        const newOptions = _.shuffle([correctAnswer, ...wrongOptions]);
+
+        setOptionsMap((prevOptionsMap) => ({
+          ...prevOptionsMap,
+          [currentWord.word]: newOptions,
+        }));
+      }
+
+      setOptions(optionsMap[currentWord.word] || []);
+    }
+  }, [currentWord, viewWords, optionsMap]);
+
+  useEffect(() => {
+    const fetchWordList = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem("wordList");
+        let storedWordList = jsonValue ? JSON.parse(jsonValue) : [];
+        const today = new Date().toISOString().split("T")[0];
+
+        const filteredWords = storedWordList.filter((word) => {
+          if (!word.learneddate) return false;
+          const learnDateOnly = word.learneddate.split("T")[0];
+          const differenceInDays = Math.ceil(
+            (new Date(today) - new Date(learnDateOnly)) / (1000 * 3600 * 24)
+          );
+          return [0, 5, 7, 15].includes(differenceInDays);
+        });
+
+        setViewWords(filteredWords);
+        setCurrentWordIndex(0);
+      } catch (e) {
+        console.error("Failed to fetch wordList:", e);
+      }
+    };
+
+    fetchWordList();
+  }, []);
+
+  const handleNextWord = () => {
+    if (currentWordIndex < viewWords.length - 1) {
+      setCurrentWordIndex(currentWordIndex + 1);
+    }
+  };
+
+  const handlePrevWord = () => {
+    if (currentWordIndex > 0) {
+      setCurrentWordIndex(currentWordIndex - 1);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.wordText}>sdf</Text>
+        <Text style={styles.wordText}>{currentWord.word || ""}</Text>
       </View>
       <View style={styles.navigation}>
-        <TouchableOpacity style={styles.navButton}>
+        <TouchableOpacity style={styles.navButton} onPress={handlePrevWord}>
           <Text>〈</Text>
         </TouchableOpacity>
-        <Text style={styles.navText}>3/10</Text>
-        <TouchableOpacity style={styles.navButton}>
+        <Text style={styles.navText}>
+          {currentWordIndex + 1}/{viewWords.length}
+        </Text>
+        <TouchableOpacity style={styles.navButton} onPress={handleNextWord}>
           <Text>〉</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>다가가다</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>멀어지다</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>왔다갔다</Text>
-      </TouchableOpacity>
+      {options.map((option, index) => (
+        <TouchableOpacity
+          key={index}
+          style={styles.button}
+          onPress={() => handleAnswer(option)}
+        >
+          <Text style={styles.buttonText}>{option}</Text>
+          {userAnswers[currentWord.word] === option && (
+            <FontAwesome
+              name="check-circle"
+              size={40}
+              color="white"
+              style={styles.checkIcon}
+            />
+          )}
+        </TouchableOpacity>
+      ))}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  checkIcon: {
+    position: "absolute",
+    right: 15,
+    justifyContent: "center",
+  },
   container: {
     flex: 1,
-    //justifyContent: "center",
     alignItems: "center",
-    padding: 16,
+    //justifyContent: "center",
+    paddingTop: 50,
     backgroundColor: "white",
   },
   card: {
@@ -42,7 +151,6 @@ const styles = StyleSheet.create({
     height: "20%",
     marginVertical: 2,
     padding: 20,
-    marginTop: 150,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 3,
@@ -53,24 +161,17 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: "bold",
   },
-  navigation: {
-    flexDirection: "row",
+  optionsContainer: {
     alignItems: "center",
-    marginVertical: 10,
-  },
-  navButton: {
-    padding: 20,
-  },
-  navText: {
-    fontSize: 18,
-    marginHorizontal: 20,
+    width: "100%",
   },
   button: {
     marginBottom: 40, // 버튼 사이의 간격
     backgroundColor: "#AABCFD", // 버튼의 배경색
     borderRadius: 20, // 버튼의 모서리 둥글기
-    paddingVertical: 30, // 상하 패딩
+    justifyContent: "center",
     width: "75%", // 버튼의 너비
+    height: "20%",
     elevation: 3, // 안드로이드에서 그림자 효과
     shadowOpacity: 0.3, // iOS에서 그림자 효과
     shadowRadius: 4, // iOS에서 그림자 둥근 효과
@@ -80,10 +181,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   buttonText: {
-    color: "black", // 텍스트 색상
-    textAlign: "center", // 텍스트 정렬
-    fontSize: 30, // 텍스트 크기
-    fontWeight: "bold", // 텍스트 굵기
+    fontSize: 30,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  navigation: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "40%",
+    marginVertical: 20,
+  },
+  navButton: {},
+  navText: {
+    fontSize: 18,
+    marginHorizontal: 20,
+  },
+  navButtonText: {
+    fontSize: 30,
+    color: "black",
   },
 });
 
