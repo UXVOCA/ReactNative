@@ -13,24 +13,34 @@ const ReviewTestPage = () => {
   const [optionsMap, setOptionsMap] = useState({});
   const [options, setOptions] = useState([]);
   const [userAnswers, setUserAnswers] = useState({});
-
   const handleAnswer = (selectedOption) => {
-    setUserAnswers({
+    const updatedUserAnswers = {
       ...userAnswers,
       [currentWord.word]: selectedOption,
-    });
+    };
+
+    // 콘솔 로그를 통해 데이터 확인
+    console.log("Updated User Answers:", updatedUserAnswers);
+    console.log("View Words with Options:", viewWords);
 
     if (currentWordIndex < viewWords.length - 1) {
+      setUserAnswers(updatedUserAnswers);
       setCurrentWordIndex(currentWordIndex + 1);
     } else {
-      navigation.navigate("ReviewTestAnswerPage", { userAnswers }); // ReviewTestAnswerPage로 이동하면서 userAnswers 데이터 전달
-      // 로직 완료 시 처리
+      // ReviewTestAnswerPage로 이동하기 전에 데이터 확인
+      console.log("Final User Answers:", updatedUserAnswers);
+      console.log("Final View Words with Options:", viewWords);
+      navigation.navigate("ReviewTestAnswerPage", {
+        userAnswers,
+        viewWords,
+      });
     }
   };
 
   useEffect(() => {
     if (currentWordIndex < viewWords.length) {
       setCurrentWord(viewWords[currentWordIndex]);
+      setOptions(viewWords[currentWordIndex].options || []);
     } else {
       setCurrentWord({});
     }
@@ -74,8 +84,20 @@ const ReviewTestPage = () => {
           return [0, 5, 7, 15].includes(differenceInDays);
         });
 
-        setViewWords(filteredWords);
-        setCurrentWordIndex(0);
+        // 올바른 답과 잘못된 보기를 혼합하여 options 배열 생성
+        const updatedViewWords = filteredWords.map((word) => {
+          const correctAnswer = word.answer[0];
+          const wrongOptions = _.sampleSize(
+            filteredWords
+              .filter((w) => w.word !== word.word)
+              .map((w) => w.answer[0]),
+            2
+          );
+          const options = _.shuffle([correctAnswer, ...wrongOptions]);
+          return { ...word, options };
+        });
+
+        setViewWords(updatedViewWords);
       } catch (e) {
         console.error("Failed to fetch wordList:", e);
       }
@@ -103,13 +125,13 @@ const ReviewTestPage = () => {
       </View>
       <View style={styles.navigation}>
         <TouchableOpacity style={styles.navButton} onPress={handlePrevWord}>
-          <Text>〈</Text>
+          <Text style={styles.navButtonText}> {"<"} </Text>
         </TouchableOpacity>
         <Text style={styles.navText}>
           {currentWordIndex + 1}/{viewWords.length}
         </Text>
         <TouchableOpacity style={styles.navButton} onPress={handleNextWord}>
-          <Text>〉</Text>
+          <Text style={styles.navButtonText}>{">"}</Text>
         </TouchableOpacity>
       </View>
       {options.map((option, index) => (
@@ -134,6 +156,10 @@ const ReviewTestPage = () => {
 };
 
 const styles = StyleSheet.create({
+  navButtonText: {
+    fontSize: 30,
+    color: "black",
+  },
   checkIcon: {
     position: "absolute",
     right: 15,
@@ -166,12 +192,13 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   button: {
-    marginBottom: 40, // 버튼 사이의 간격
+    marginTop: 30,
+    marginBottom: 5, // 버튼 사이의 간격
     backgroundColor: "#AABCFD", // 버튼의 배경색
     borderRadius: 20, // 버튼의 모서리 둥글기
     justifyContent: "center",
     width: "75%", // 버튼의 너비
-    height: "20%",
+    height: "15%",
     elevation: 3, // 안드로이드에서 그림자 효과
     shadowOpacity: 0.3, // iOS에서 그림자 효과
     shadowRadius: 4, // iOS에서 그림자 둥근 효과
@@ -190,7 +217,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     width: "40%",
-    marginVertical: 20,
+    paddingTop: 30,
   },
   navButton: {},
   navText: {
