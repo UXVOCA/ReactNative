@@ -38,7 +38,7 @@ function App() {
             component={TestPage}
             options={({ navigation }) => ({
               header: () => (
-                <CustomHeader navigation={navigation} title="단어 테스트" />
+                <CustomHeader navigation={navigation} title="복습 단어" />
               ),
             })}
           />
@@ -139,7 +139,7 @@ function App() {
               header: () => (
                 <CustomHeader
                   navigation={navigation}
-                  title="오늘의 새로운 단어"
+                  title="오늘의 단어 리스트"
                 />
               ),
             })}
@@ -151,7 +151,7 @@ function App() {
               header: () => (
                 <CustomHeader
                   navigation={navigation}
-                  title="오늘의 복습 단어"
+                  title="복습 단어 리스트"
                 />
               ),
             })}

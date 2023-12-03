@@ -54,7 +54,7 @@ function Menu({ navigation, setMenuVisible, menuVisible }) {
             size={24}
             color="black"
           />
-          <Text style={styles.menuText}>단어 테스트</Text>
+          <Text style={styles.menuText}>복습 단어</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.menuItem}

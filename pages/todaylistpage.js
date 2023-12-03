@@ -17,17 +17,17 @@ const TodayListPage = () => {
                     style={styles.button}
                     onPress={() => navigation.navigate("TodayNewListPage")}
                 >
-                    <Text style={styles.buttonText}>오늘의</Text>
-                    <Text style={styles.buttonText}>새로운 단어</Text>
-                    <Text style={styles.buttonText}>학습🔥</Text>
+                    <Text style={styles.buttonText}>오늘의 단어</Text>
+                    {/* <Text style={styles.buttonText}></Text> */}
+                    <Text style={styles.buttonText}>📝리스트📝</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.button}
-                    onPress={() => navigation.navigate("TodayReviewListPage")}
+                    onPress={() => navigation.navigate("TodayTestPage")}
                 >
-                    <Text style={styles.buttonText}>오늘의</Text>
-                    <Text style={styles.buttonText}>복습 단어</Text>
-                    <Text style={styles.buttonText}>학습💪🏻</Text>
+                    <Text style={styles.buttonText}>오늘의 단어</Text>
+                    {/* <Text style={styles.buttonText}>새로운 단어</Text> */}
+                    <Text style={styles.buttonText}>💯테스트💯</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     buttonText: {
-        width: 140,
+        width: 150,
         color: "white", // 텍스트 색상
         textAlign: "center", // 텍스트 정렬
         fontSize: 30, // 텍스트 크기
