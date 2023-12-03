@@ -53,7 +53,7 @@ const TodayReviewListPage = () => {
             (todayDateOnly - learnDateOnly) / (1000 * 3600 * 24)
           );
           console.log("differenceInDays:", differenceInDays);
-          return [1, 5, 7, 15].includes(differenceInDays);
+          return [2, 6, 8, 16].includes(differenceInDays);
         });
 
         console.log("filteredWords:", filteredWords);
@@ -90,7 +90,7 @@ const TodayReviewListPage = () => {
     const learnDate = new Date(learndate);
     const differenceInTime = today.getTime() - learnDate.getTime();
     const differenceInDays = Math.ceil(differenceInTime / (1000 * 3600 * 24));
-    return differenceInDays;
+    return differenceInDays-1;
   };
 
   return (
