@@ -169,16 +169,6 @@ const TodayTestPage = () => {
       ? JSON.parse(storedLearncountData)
       : {};
 
-    words.forEach((word) => {
-      if (!word.todaytested) {
-        if (learncountData[word.word]) {
-          learncountData[word.word] += 1;
-        } else {
-          learncountData[word.word] = 1;
-        }
-      }
-    });
-
     await AsyncStorage.setItem(
       "learncountData",
       JSON.stringify(learncountData)
