@@ -13,17 +13,17 @@ import wordList from "../vocab/vocab"; // vocab.js에서 단어 목록 가져오
 import _ from "lodash";
 
 const TodayTestPage = () => {
-  const clearAsyncStorage = async () => {
-    try {
-      await AsyncStorage.clear();
-      console.log("AsyncStorage has been cleared!");
-    } catch (error) {
-      console.error("Error clearing AsyncStorage:", error);
-    }
-  };
+  // const clearAsyncStorage = async () => {
+  //   try {
+  //     await AsyncStorage.clear();
+  //     console.log("AsyncStorage has been cleared!");
+  //   } catch (error) {
+  //     console.error("Error clearing AsyncStorage:", error);
+  //   }
+  // };
 
-  // // 이 함수를 필요한 곳에서 호출하여 AsyncStorage를 초기화할 수 있습니다.
-  clearAsyncStorage();
+  // // // 이 함수를 필요한 곳에서 호출하여 AsyncStorage를 초기화할 수 있습니다.
+  // clearAsyncStorage();
   const navigation = useNavigation(); //todayteestanswerpage로 넘어가려고 선언한거
   const [currentDate, setCurrentDate] = useState(new Date()); //다음날 됐을때를 위한 선언
   const [currentNumber, setCurrentNumber] = useState(0); //단어 번호

@@ -7,7 +7,7 @@ const TodayNewListPage = () => {
     const [selectedWords, setSelectedWords] = useState([]); //단어빨간색 처리하는
     const [viewWords, setViewWords] = useState([]); //무슨단어보여줄지
 
-    // vocab.js를 storage에 저장하는 함수
+//    vocab.js를 storage에 저장하는 함수
     // const storeWordList = async (wordList) => {
     //     try {
     //       const jsonValue = JSON.stringify(wordList);

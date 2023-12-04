@@ -502,7 +502,7 @@ const wordList = [
 //   }
 // };
 
-// // vocab.js의 데이터를 저장
+// vocab.js의 데이터를 저장
 // storeData(wordList);
 
 export default wordList;
