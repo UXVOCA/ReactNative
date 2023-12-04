@@ -20,7 +20,8 @@ const getWrongWordCount = async () => {
 };
 
 function HomePage() {
-  const { attendData, updateAttendance } = useContext(attendContext);
+  const { attendData, attendDataLoaded, updateAttendance } =
+    useContext(attendContext);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [attendanceStreak, setAttendanceStreak] = useState(0);
@@ -161,45 +162,54 @@ function HomePage() {
 
   // 출석체크 로직
   useEffect(() => {
-    (async () => {
-      try {
-        const selectedWordsString = await AsyncStorage.getItem("selectedWords");
-        const selectedWords = selectedWordsString
-          ? JSON.parse(selectedWordsString)
-          : [];
+    if (attendDataLoaded) {
+      (async () => {
+        try {
+          const selectedWordsString = await AsyncStorage.getItem(
+            "selectedWords"
+          );
+          const selectedWords = selectedWordsString
+            ? JSON.parse(selectedWordsString)
+            : [];
 
-        const today = new Date();
-        const offset = today.getTimezoneOffset() * 60000; // 시간대 오프셋을 밀리초 단위로 변환
-        const localISOTime = new Date(today - offset)
-          .toISOString()
-          .split("T")[0];
-        console.log(localISOTime); // 로컬 날짜 출력
+          const today = new Date();
+          const offset = today.getTimezoneOffset() * 60000;
+          const localISOTime = new Date(today - offset)
+            .toISOString()
+            .split("T")[0];
+          console.log("Local ISO Time:", localISOTime); // 로컬 날짜 로깅
 
-        const hasTestedToday = selectedWords.some((word) => word.todaytested);
-        if (hasTestedToday) {
-          const newAttendanceData = {
-            [localISOTime]: {
-              marked: true,
-              dotColor: "#7794FF",
-              todaytestresult: correctAnswersCount,
-              reviewtestresult: correctReviewedWordsCount,
-              wrongcount: wrongWordCount,
-              totalReviewCount: totalReviewedWordsCount,
-            },
-          };
+          const hasTestedToday = selectedWords.some((word) => word.todaytested);
+          if (hasTestedToday) {
+            const newAttendanceData = {
+              [localISOTime]: {
+                marked: true,
+                dotColor: "#7794FF",
+                todaytestresult: correctAnswersCount,
+                reviewtestresult: correctReviewedWordsCount,
+                wrongcount: wrongWordCount,
+                totalReviewCount: totalReviewedWordsCount,
+              },
+            };
 
-          console.log(newAttendanceData);
-          await updateAttendance(newAttendanceData);
+            console.log(
+              "New Attendance Data before update:",
+              newAttendanceData
+            );
+            await updateAttendance(newAttendanceData);
+            console.log("New Attendance Data after update:", newAttendanceData);
+          }
+        } catch (error) {
+          console.error("Error updating attendance", error);
         }
-      } catch (error) {
-        console.error("Error updating attendance", error);
-      }
-    })();
+      })();
+    }
   }, [
     correctAnswersCount,
     correctReviewedWordsCount,
     totalReviewedWordsCount,
     wrongWordCount,
+    attendDataLoaded,
   ]);
 
   return (
