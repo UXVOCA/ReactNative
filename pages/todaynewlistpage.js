@@ -66,7 +66,7 @@ const TodayNewListPage = () => {
                 const jsonValue = await AsyncStorage.getItem('wordList');
                 let storedWordList = jsonValue != null ? JSON.parse(jsonValue) : [];
                 storedWordList.sort((a, b) => a.learncount - b.learncount);
-                setViewWords(storedWordList.slice(0, 30));
+                setViewWords(storedWordList.slice(0, 10));
             } catch (e) {
                 // 에러 처리
             }
