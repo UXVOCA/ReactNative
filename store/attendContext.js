@@ -1,8 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const attendContext = createContext({});
-
 const initialMarkedDates = {
   "2023-11-01": {
     marked: true,
@@ -38,46 +36,69 @@ const initialMarkedDates = {
   },
 };
 
+// Added attendDataLoaded state to the context
+export const attendContext = createContext({
+  attendData: {},
+  updateAttendance: () => {},
+  attendDataLoaded: false,
+  setAttendDataLoaded: () => {},
+});
+
 export function AttendProvider({ children }) {
   const [attendData, setAttendData] = useState(initialMarkedDates);
+  const [attendDataLoaded, setAttendDataLoaded] = useState(false);
 
+  // This function loads the attendance data and sets the loaded flag
   const loadAttendanceData = async () => {
     try {
       const storedData = await AsyncStorage.getItem("attendanceData");
       if (storedData !== null) {
         setAttendData(JSON.parse(storedData));
       } else {
-        // 처음 앱을 사용할 때는 초기 데이터를 설정
-        setAttendData(initialMarkedDates);
         await AsyncStorage.setItem(
           "attendanceData",
           JSON.stringify(initialMarkedDates)
         );
+        setAttendData(initialMarkedDates);
       }
+      // Set the attendDataLoaded flag to true after the data is set
+      setAttendDataLoaded(true);
     } catch (error) {
       console.error("Error loading attendance data", error);
     }
   };
 
+  // Call loadAttendanceData when the component mounts
   useEffect(() => {
     loadAttendanceData();
   }, []);
 
-  // 출석 데이터를 업데이트하고 AsyncStorage에 저장하는 함수
+  // The updateAttendance function now checks if the data is loaded before updating
   const updateAttendance = async (newData) => {
-    try {
-      // attendData 상태를 업데이트
-      const updatedData = { ...attendData, ...newData };
-      setAttendData(updatedData);
-      // AsyncStorage에 'attendanceData' 키로 데이터 저장
-      await AsyncStorage.setItem("attendanceData", JSON.stringify(updatedData));
-    } catch (error) {
-      console.error("Error updating attendance data", error);
+    if (attendDataLoaded) {
+      try {
+        const updatedData = { ...attendData, ...newData };
+        setAttendData(updatedData);
+        await AsyncStorage.setItem(
+          "attendanceData",
+          JSON.stringify(updatedData)
+        );
+      } catch (error) {
+        console.error("Error updating attendance data", error);
+      }
     }
   };
 
+  // Provide the attendData, updateAttendance, and attendDataLoaded flag to the context
   return (
-    <attendContext.Provider value={{ attendData, updateAttendance }}>
+    <attendContext.Provider
+      value={{
+        attendData,
+        updateAttendance,
+        attendDataLoaded,
+        setAttendDataLoaded,
+      }}
+    >
       {children}
     </attendContext.Provider>
   );
